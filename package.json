@@ -1,6 +1,6 @@
 {
 	"name": "geochronos",
-	"version": "1.5.0",
+	"version": "0.1.0",
 	"description": "Render interactive geological timelines in your notes using millions of years (Ma). Fork of Chronos.",
 	"main": "main.js",
 	"scripts": {

@@ -234,27 +234,31 @@ export class ChronosTimeline {
 	}
 
 	private _setupTooltip(timeline: Timeline, items: ChronosDataItem[]) {
-		timeline.on("itemover", (event) => {
-			const item = new DataSet(items).get(
-				event.item,
-			) as unknown as ChronosDataSetDataItem;
-			if (item) {
-				let text: string;
-                if (item.isGeological) {
-                    const startMa = isoToMa(item.start.toISOString());
-                    const endMa = item.end ? isoToMa(item.end.toISOString()) : startMa;
-                    text = `${item.content} (${formatMaRange(startMa, endMa)})${item.cDescription ? " \n " + item.cDescription : ""}`;
-                } else {
-                    text = `${item.content} (${smartDateRange(
-                        item.start.toISOString(),
-                        item.end?.toISOString() ?? null,
-                        this.settings.selectedLocale,
-                    )})${item.cDescription ? " \n " + item.cDescription : ""}`;
+        timeline.on("itemover", (event) => {
+            try {
+                const item = new DataSet(items).get(
+                    event.item,
+                ) as unknown as ChronosDataSetDataItem;
+                if (item) {
+                    let text: string;
+                    if (item.isGeological) {
+                        const startMa = isoToMa(item.start.toISOString());
+                        const endMa = item.end ? isoToMa(item.end.toISOString()) : startMa;
+                        text = `${item.content} (${formatMaRange(startMa, endMa)})${item.cDescription ? " \n " + item.cDescription : ""}`;
+                    } else {
+                        text = `${item.content} (${smartDateRange(
+                            item.start.toISOString(),
+                            item.end?.toISOString() ?? null,
+                            this.settings.selectedLocale,
+                        )})${item.cDescription ? " \n " + item.cDescription : ""}`;
+                    }
+                    setTooltip(event.event.target, text);
                 }
-                setTooltip(event.event.target, text);
-			}
-		});
-	}
+            } catch (e) {
+                console.error("Geochronos: Error in tooltip handler:", e);
+            }
+        });
+    }
 
 	private _createRefitButton(timeline: Timeline) {
 		const refitButton = this.container.createEl("button", {
