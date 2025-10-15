@@ -66,9 +66,22 @@
 	background-color: var(--color-base-70) !important;
 }
 
-.chronos-timeline-container .vis-item.vis-background {
+.chronos-timeline-container .vis-item.vis-background:not(.geology-overlay) {
 	background-color: hsla(var(--color-accent-hsl), 0.2);
 	color: var(--text-on-primary);
+}
+
+.chronos-timeline-container .vis-item.geology-overlay {
+	border: none !important;
+	color: var(--text-normal) !important;
+	font-weight: 600;
+	text-transform: uppercase;
+	letter-spacing: 0.02em;
+}
+
+.chronos-timeline-container .vis-item.geology-overlay .vis-item-content {
+	padding: 0.15rem 0.45rem;
+	opacity: 0.95;
 }
 
 .chronos-timeline-container .vis-item.vis-selected {

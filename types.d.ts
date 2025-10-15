@@ -39,6 +39,7 @@ export type Flags = {
 	};
 	noToday?: boolean;
 	height?: number;
+	geologyOverlays?: ("Age" | "Epoch" | "Period" | "Era" | "Eon")[];
 };
 
 export interface ParseResult {

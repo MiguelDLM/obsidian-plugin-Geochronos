@@ -1,102 +1,38 @@
-export const templateBlank = `\`\`\`geochronos
+# Geochronos Cheatsheet
 
-\`\`\``;
-
-export const templateBasic = `\`\`\`geochronos
-- [2020] Event 1
-
-- [2020-01-04~2020-01-14] Event 2
-
-- [2020-01-10] Event 3
-
-@ [2020-01-06~2020-01-10] Period 1
-\`\`\``;
-
-export const templateGeological = `\`\`\`geochronos
-# Geological Timeline Example - Mesozoic Era
-
-@ [251.902Ma~66Ma] #cyan {Mesozoic} Mesozoic Era | "Age of Reptiles"
-
-@ [251.902Ma~201.3Ma] #purple {Triassic} Triassic Period
-- [252Ma] #red {Triassic} Permian-Triassic extinction | Largest mass extinction event
-
-@ [201.3Ma~145Ma] #blue {Jurassic} Jurassic Period  
-- [201Ma] #red {Jurassic} Triassic-Jurassic extinction
-- [150Ma] {Jurassic} Archaeopteryx | First bird-like dinosaur
-
-@ [145Ma~66Ma] #green {Cretaceous} Cretaceous Period
-- [125Ma] {Cretaceous} Flowering plants appear
-- [66Ma] #red {Cretaceous} K-Pg extinction | Dinosaurs extinct
-\`\`\``;
-
-export const templateGeologicalPrecambrian = `\`\`\`geochronos
-# Earth's Early History
-
-@ [4600Ma~538.8Ma] #pink Precambrian | Before complex life
-
-@ [4600Ma~4000Ma] #darkgray {Hadean} Hadean Eon
-- [4540Ma] {Hadean} Earth forms
-- [4500Ma] {Hadean} Moon-forming impact
-- [4400Ma] {Hadean} Oldest known minerals
-
-@ [4000Ma~2500Ma] #pink {Archean} Archean Eon
-- [3800Ma] {Archean} Oldest rocks
-- [3500Ma] {Archean} First evidence of life
-- [2700Ma] {Archean} Oxygen-producing bacteria appear
-
-@ [2500Ma~538.8Ma] #orange {Proterozoic} Proterozoic Eon
-- [2400Ma] {Proterozoic} Great Oxygenation Event
-- [720Ma~635Ma] {Proterozoic} Snowball Earth
-- [635Ma] {Proterozoic} Ediacaran biota | First complex organisms
-\`\`\``;
-
-export const templateAdvanced = `\`\`\`geochronos
-@ [1888-09-26~1965-01-04] {T.S. Eliot} Life: 1888-1965
-- [1949] {T.S. Eliot} "The Cocktail Party" | A play
-- [1920] {T.S. Eliot}  "The Sacred Wood"
-- [1922] {T.S. Eliot} "The Wasteland"
-
-@ [1899-08-24~1986-06-14] {Jorge Luis Borges} Life: 1899-1986
-- [1944] {Jorge Luis Borges} "Ficciones"
-- [1949] #cyan {Jorge Luis Borges} "El Aleph"
-- [1962] {Jorge Luis Borges} "Labyrinths"
-\`\`\``;
-
-export const cheatsheet = `# Geochronos Cheatsheet
-
-After installing the Geochronos Timeline plugin for Obsidian, copy and paste this whole markdown file into a file in your vault to play around and learn the syntax.
+After installing the Geochronos plugin for Obsidian, copy and paste this whole markdown file into a file in your vault to play around and learn the syntax. The original Chronos syntax still works as an alias, but Geochronos is the preferred fence name going forward.
 
 Hover on a timeline and click the Edit button in the upper right to play with the data.
 
 ## Date formats
 
-Geochronos can visualize dates from the year down to the second level, using the syntax \`YYYY-MM-DDThh:mm:ss\`.
+Geochronos can visualize dates from the year down to the second level, using the syntax `YYYY-MM-DDThh:mm:ss`.
 
-The only required component of a date is the year (\`YYYY\`). Beyond that, you can specify additional time granularity as needed for your use case.
+The only required component of a date is the year (`YYYY`). Beyond that, you can specify additional time granularity as needed for your use case.
 
 If not explicitly provided:
 
-- The month and day default to \`01\` (January and the 1st)
-- The hour, minute, and second default to \`00\` (top of the hour or minute)
+- The month and day default to `01` (January and the 1st)
+- The hour, minute, and second default to `00` (top of the hour or minute)
 
 ### Examples
 
-\`\`\`geochronos
+```geochronos
 - [2020] A year
 - [2020-02] A month
 - [2020-02-28] A day
 - [2020-02-28T12] An hour
 - [2020-02-28T12:30] A minute
 - [2020-02-28T12:30:09] A second
-\`\`\`
+```
 
 ## Events
 
 **Full Syntax**
 
-\`\`\`
+```
 - [Date~Date] #Color {Group Name} Event Name | Description
-\`\`\`
+```
 
 - The second Date, Color, Group Name, Event Name, and Description are optional
 - Description appears when you hover on an event in the timeline
@@ -107,37 +43,37 @@ If not explicitly provided:
 
 **Syntax**
 
-\`\`\`
+```
 - [Date] Event Name
-\`\`\`
+```
 
-\`\`\`geochronos
+```geochronos
 - [1879-03-14] Einstein born
-\`\`\`
+```
 
 #### Date range
 
 **Syntax**
 
-\`\`\`
+```
 - [Date~Date] Event Name
-\`\`\`
+```
 
-\`\`\`geochronos
+```geochronos
 - [1991~2001] Time I believed in Santa
-\`\`\`
+```
 
 #### Date range with description
 
 **Syntax**
 
-\`\`\`
+```
 - [Date~Date] Event Name| Description
-\`\`\`
+```
 
-\`\`\`geochronos
+```geochronos
 - [1991~2001] Time I believed in Santa | ended when my brother tried to videotape Santa with a hidden camera
-\`\`\`
+```
 
 #### With color
 
@@ -145,26 +81,26 @@ See available [Colors](#colors)
 
 **Syntax**
 
-\`\`\`
+```
 - [Date~Date] #Color Event Name| Description
-\`\`\`
+```
 
-\`\`\`geochronos
+```geochronos
 - [2001~2009] #red Bush
 - [2009~2017] #blue Obama
 - [2017~2021] #red Trump
 - [2021~2025] #blue Biden
-\`\`\`
+```
 
 #### With groups
 
 **Syntax**
 
-\`\`\`
+```
 - [Date(~Date)] {Group Name} Event Name| Description
-\`\`\`
+```
 
-\`\`\`geochronos
+```geochronos
 @ [1892-10-08~1941-08-31] {Marina Tsvetaeva} 1892-1941
 - [1916] {Marina Tsvetaeva} "Подруга"
 - [1928] {Marina Tsvetaeva}  "Поэма концов"
@@ -175,15 +111,15 @@ See available [Colors](#colors)
 - [1949] {Jorge Luis Borges} "El Aleph"
 - [1962] {Jorge Luis Borges} "Labyrinths"
 
-\`\`\`
+```
 
 ## Periods
 
 **Full Syntax**
 
-\`\`\`
+```
 @ [Date~Date] #Color {Group Name} Period Name
-\`\`\`
+```
 
 - Color, Group Name, and Period Name are optional
 
@@ -191,17 +127,17 @@ See available [Colors](#colors)
 
 #### Basic
 
-\`\`\`geochronos
+```geochronos
 @ [-300~250] Yayoi Period
 - [-100] Introduction of rice cultivation
 - [-57] Japan’s first recorded contact with China
-\`\`\`
+```
 
 #### With color
 
 See available [Colors](#colors)
 
-\`\`\`geochronos
+```geochronos
 @ [-300~250] #red Yayoi Period
 - [-100] Introduction of rice cultivation
 - [-57] Japan’s first recorded contact with China
@@ -209,46 +145,101 @@ See available [Colors](#colors)
 @ [250~538] Kofun Period
 - [250] Construction of keyhole-shaped kofun burial mounds begins
 - [369] Yamato state sends envoys to Korea
-\`\`\`
-
+```
 
 ## Points
 
 **Syntax**
 
-\`\`\`
+```
 * [Date] Point Name | Description
-\`\`\`
+```
 
-\`\`\`geochronos
+```geochronos
 - [2024-02-26~2024-03-10] Tournament
 * [2024-02-26] Game 1 | Austin
 * [2024-02-28] Game 2 | Los Angeles
 * [2024-03-06] Game 3 | Tokyo
 * [2024-03-10] Game 4 | Jakarta
-\`\`\`
+```
 
 ## Markers
 
 **Syntax**
 
-\`\`\`
+```
 = [Date] Marker Name
-\`\`\`
+```
 
 ### Examples
 
-\`\`\`geochronos
+```geochronos
 = [1440] Invention of the Gutenberg Press
 
 - [1455] Gutenberg Bible Printed
 @ [1501~1600] The Spread of Printing
 - [1517] Martin Luther's 95 Theses
-\`\`\`
+```
+
+## Ordering
+
+**Order by start date**
+
+```geochronos
+> ORDERBY start
+
+- [2026~2028] Event D
+- [2024~2028] Event B
+- [2025~2030] #red Event C
+- [2020~2030] #red  Event A
+```
+
+**Order by start (descending)**
+
+```geochronos
+> ORDERBY -start
+
+- [2026~2028] Event D
+- [2024~2028] Event B
+- [2025~2030] #red Event C
+- [2020~2030] #red  Event A
+```
+
+**Order by color and start**
+
+```geochronos
+> ORDERBY color|start
+
+- [2026~2028] Event D
+- [2024~2028] Event B
+- [2025~2030] #red Event C
+- [2020~2030] #red  Event A
+```
+
+## Default view dates
+
+Use the `> DEFAULTVIEW start|end` flag to specify default start and end dates for your timeline's initial load
+
+```geochronos
+> DEFAULTVIEW  -3000|3000
+
+- [2024] AGI
+```
+
+## Geological overlays
+
+Enable prebuilt geological backgrounds with timeline flags. `> AGES` fills the track with International Commission on Stratigraphy (ICS) age intervals, using their official colors and bounds.
+
+```geochronos
+> AGES
+
+* [0.0117Ma] End of the Pleistocene
+@ [65Ma~66Ma] Chicxulub impact | boundary between the Cretaceous and Paleogene periods
+```
 
 ## Advanced example
 
-\`\`\`geochronos
+```geochronos
 - [1945-07-17] {Europe} Potsdam Conference | where post-WWII Europe is divided
 - [1947-03-12] {USA} Truman Doctrine | committing the U.S. to containing communism
 - [1948-06-24~1949-05-12] {Europe} Berlin Blockade | and Airlift in response to Soviet actions in Berlin
@@ -285,61 +276,15 @@ See available [Colors](#colors)
 
 = [1991-12-26] End of the Cold War
 
-\`\`\`
-
-## Ordering
-
-**Order by start date**
-
-\`\`\`geochronos
-> ORDERBY start
-
-- [2026~2028] Event D
-- [2024~2028] Event B
-- [2025~2030] #red Event C
-- [2020~2030] #red  Event A
-\`\`\`
-
-**Order by start (descending)**
-
-\`\`\`geochronos
-> ORDERBY -start
-
-- [2026~2028] Event D
-- [2024~2028] Event B
-- [2025~2030] #red Event C
-- [2020~2030] #red  Event A
-\`\`\`
-
-**Order by color and start**
-
-\`\`\`geochronos
-> ORDERBY color|start
-
-- [2026~2028] Event D
-- [2024~2028] Event B
-- [2025~2030] #red Event C
-- [2020~2030] #red  Event A
-\`\`\`
-
-## Default view dates
-
-Use the \`> DEFAULTVIEW start|end\` flag to specify default start and end dates for your timeline's initial load
-
-\`\`\`geochronos
-> DEFAULTVIEW  -3000|3000
-
-- [2024] AGI
-\`\`\`
+```
 
 ## Colors
 
-- \`#red\`
-- \`#orange\`
-- \`#yellow\`
-- \`#green\`
-- \`#blue\`
-- \`#purple\`
-- \`#pink\`
-- \`#cyan\`
-`;
+- `#red`
+- `#orange`
+- `#yellow`
+- `#green`
+- `#blue`
+- `#purple`
+- `#pink`
+- `#cyan`

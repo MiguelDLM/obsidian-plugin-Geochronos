@@ -1,5 +1,11 @@
 import { isRtl } from "./knownLocales";
 import { toUTCDate } from "./utcUtil";
+import { isoToMa, formatMaDisplay, formatMaRange } from "./geologicalDateUtil";
+
+// Check if a date is in geological time range (before year 0)
+function _isGeologicalTime(date: Date): boolean {
+	return date.getUTCFullYear() < 0;
+}
 
 function _formatYearByLocale(date: Date, locale: string) {
 	switch (locale) {
@@ -44,6 +50,22 @@ export function smartDateRange(
 ) {
 	const start = toUTCDate(startStr);
 	const end = endStr ? toUTCDate(endStr) : null;
+
+	// Check if we're dealing with geological time
+	if (_isGeologicalTime(start) || (end && _isGeologicalTime(end))) {
+		try {
+			const startMa = isoToMa(startStr);
+			if (end) {
+				const endMa = isoToMa(endStr!);
+				return formatMaRange(startMa, endMa);
+			} else {
+				return formatMaDisplay(startMa);
+			}
+		} catch (e) {
+			// Fallback to regular date formatting if conversion fails
+			console.warn("Failed to convert geological date:", e);
+		}
+	}
 
 	// Options to format month and day as per locale
 	const monthOptions = { month: "short", timeZone: "UTC" };

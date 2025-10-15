@@ -11,6 +11,12 @@ import { Color, Opacity } from "../enums";
 import { DEFAULT_LOCALE } from "../constants";
 import { toPaddedISOZ, toUTCDate, validateUTCDate } from "../util/utcUtil";
 import { FLAGS_PREFIX } from "./flags";
+import { 
+	isGeologicalDate, 
+	geologicalDateToISO, 
+	validateGeologicalDate,
+	parseGeologicalDate 
+} from "../util/geologicalDateUtil";
 
 export class ChronosMdParser {
 	private errors: string[] = [];
@@ -75,7 +81,8 @@ export class ChronosMdParser {
 
 	private _parseTimeItem(line: string, lineNumber: number) {
 		const itemTypeP = `[-@=\\*]`;
-		const dateP = `(-?\\d{1,}(-?(\\d{2})?-?(\\d{2})?T?(\\d{2})?:?(\\d{2})?:?(\\d{2})?)?)`;
+		// Updated date pattern to support both ISO dates and geological dates (e.g., "252Ma", "66.0Ma")
+		const dateP = `(-?\\d{1,}(?:\\.\\d+)?\\s*Ma|\\d{1,}(-?(\\d{2})?-?(\\d{2})?T?(\\d{2})?:?(\\d{2})?:?(\\d{2})?)?)`;
 		const optSp = `\\s*`;
 
 		const separatorP = `([^-\\d\\s]*?)?`;
@@ -95,7 +102,7 @@ export class ChronosMdParser {
 			return null;
 		} else {
 			const [
-				,
+				fullMatch,
 				start,
 				,
 				,
@@ -130,14 +137,16 @@ export class ChronosMdParser {
 				: undefined;
 			const link = contentLink || descriptionLink;
 
+			// Helper function to process dates (geological or ISO)
+			const processDate = (dateStr: string | undefined, fallback: string): string => {
+				if (!dateStr) return toPaddedISOZ(fallback);
+				return parseGeologicalDate(dateStr);
+			};
+
 			return {
-				start: start ? toPaddedISOZ(start) : toPaddedISOZ(now),
+				start: processDate(start, now),
 				separator,
-				end: separator
-					? end
-						? toPaddedISOZ(end)
-						: toPaddedISOZ(now)
-					: undefined,
+				end: separator ? processDate(end, now) : undefined,
 				color,
 				groupName,
 				content,
@@ -159,7 +168,10 @@ export class ChronosMdParser {
 		type = "default",
 		cLink,
 	}: ConstructItemParams) {
-		this._validateDates(start, end, separator, lineNumber);
+		const startISO = toPaddedISOZ(start);
+		const endISO = end ? toPaddedISOZ(end) : undefined;
+
+		this._validateDates(startISO, endISO, separator, lineNumber);
 
 		const groupId = groupName ? this._getOrCreateGroupId(groupName) : null;
 
@@ -188,10 +200,10 @@ export class ChronosMdParser {
 		}
 		return {
 			content: content || "",
-			start: toUTCDate(start),
+			start: toUTCDate(startISO),
 			end:
-				end && toUTCDate(start) !== toUTCDate(end)
-					? toUTCDate(end)
+				endISO && toUTCDate(startISO) !== toUTCDate(endISO)
+					? toUTCDate(endISO)
 					: undefined,
 			group: groupId,
 			style: style.length ? style : undefined,
@@ -321,6 +333,15 @@ export class ChronosMdParser {
 		const flagName = match[1]?.toLocaleLowerCase();
 		const flagContent = match[2]?.split("|") || [];
 
+		const registerOverlay = (rank: "Age" | "Epoch" | "Period" | "Era" | "Eon") => {
+			if (!this.flags.geologyOverlays) {
+				this.flags.geologyOverlays = [];
+			}
+			if (!this.flags.geologyOverlays.includes(rank)) {
+				this.flags.geologyOverlays.push(rank);
+			}
+		};
+
 		switch (flagName) {
 			case "orderby":
 				this.flags.orderBy = flagContent;
@@ -342,21 +363,24 @@ export class ChronosMdParser {
 					return;
 				}
 
-				try {
-					this._validateDates(
-						toUTCDate(flagContent[0]).toISOString().split("T")[0],
-						toUTCDate(flagContent[1]).toISOString().split("T")[0],
-						"~", // Hijacking _validateDates function for validation
-						lineNumber,
-					);
+									try {
+						const start = parseGeologicalDate(flagContent[0]);
+						const end = parseGeologicalDate(flagContent[1]);
 
-					this.flags.defaultView = {
-						start: toUTCDate(flagContent[0]).toISOString(),
-						end: toUTCDate(flagContent[1]).toISOString(),
-					};
-				} catch (e) {
-					this._addParserError(lineNumber, `${e.message}: ${line}`);
-				}
+						this._validateDates(
+							start,
+							end,
+							"~", // Hijacking _validateDates function for validation
+							lineNumber,
+						);
+
+						this.flags.defaultView = {
+							start,
+							end,
+						};
+					} catch (e) {
+						this._addParserError(lineNumber, `${e.message}: ${line}`);
+					}
 				break;
 			case "notoday":
 				console.log("no today flag detected");
@@ -388,6 +412,21 @@ export class ChronosMdParser {
 				}
 
 				this.flags.height = Number(arg);
+				break;
+			case "ages":
+				registerOverlay("Age");
+				break;
+			case "epochs":
+				registerOverlay("Epoch");
+				break;
+			case "periods":
+				registerOverlay("Period");
+				break;
+			case "eras":
+				registerOverlay("Era");
+				break;
+			case "eons":
+				registerOverlay("Eon");
 				break;
 			default:
 				this._addParserError(lineNumber, `Unrecognized flag: ${line}`);
@@ -440,8 +479,8 @@ export class ChronosMdParser {
 		lineNumber: number,
 	) {
 		if (start && end) {
-			const startDate = toUTCDate(start);
-			const endDate = toUTCDate(end);
+			const startDate = new Date(start);
+			const endDate = new Date(end);
 			if (startDate > endDate) {
 				this._addParserError(
 					lineNumber,
@@ -463,6 +502,7 @@ export class ChronosMdParser {
 
 	private _validateDate(dateString: string, lineNumber: number): void {
 		try {
+			// Validate as UTC date
 			validateUTCDate(dateString);
 		} catch (e) {
 			this._addParserError(lineNumber, e.message);

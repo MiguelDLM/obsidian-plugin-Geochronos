@@ -1,31 +1,51 @@
-# Chronos Timeline: interactive timelines for Obsidian
+# Geochronos: Geological Timelines for Obsidian
 
-Render interactive timelines in your Obsidian notes from simple Markdown. Make time make sense.
+**Fork of [Chronos Timeline](https://github.com/clairefro/obsidian-plugin-chronos) adapted for geological time scales**
+
+Render interactive geological timelines in your Obsidian notes using millions of years (Ma) instead of modern dates. Perfect for geologists, paleontologists, educators, and anyone working with deep time.
 
 Powered by the [vis-timeline](https://www.npmjs.com/package/vis-timeline) library.
 
-Try it in the [Live Playground](https://clairefro.github.io/chronos-timeline-md) 
-
 ![demo](./docs/ex-main-demo.gif)
 
+## 🌍 New in Geochronos
 
-<a href="https://www.buymeacoffee.com/clairefro"><img src="https://github.com/user-attachments/assets/70fdf577-2e0c-41ed-a061-923947e848bb" width="250px" /></a>
+- **Geological date format**: Use `252Ma`, `66.0Ma`, `4600Ma` instead of calendar dates
+- **Automatic scaling**: Timeline displays in Ma, Ka (thousands), or Ga (billions) based on scale
+- **ICS data included**: Based on the International Chronostratigraphic Chart (2024)
+- **Geological templates**: Pre-built examples for Mesozoic, Precambrian, and more
+- **Full backwards compatibility**: Still works with modern dates from original Chronos
 
-## Features
-
-- Portable plain text data
-- Text-to-timeline with AI
-- Note linking
-- Grouping
-- Colors
-- (coming soon!) Render timelines anywhere outside Obsidian
+📖 **[Complete Geochronos Documentation →](./GEOCHRONOS.md)**
 
 ## Quickstart
 
-Create timelines in your notes by opening a `chronos` codeblock and adding items
+### Geological Timeline
+
+Create geological timelines using `Ma` (millions of years ago):
 
 ````markdown
-```chronos
+```geochronos
+# Mesozoic Era - Age of Dinosaurs
+
+@ [251.902Ma~66Ma] Mesozoic Era
+@ [251.902Ma~201.3Ma] #purple Triassic Period
+@ [201.3Ma~145Ma] #blue Jurassic Period  
+@ [145Ma~66Ma] #green Cretaceous Period
+
+- [252Ma] #red Permian-Triassic extinction
+- [201Ma] #red Triassic-Jurassic extinction
+- [150Ma] Archaeopteryx appears
+- [66Ma] #red K-Pg extinction | Dinosaurs extinct
+```
+````
+
+### Modern Timeline (Original Chronos format)
+
+The plugin still supports modern calendar dates:
+
+````markdown
+```geochronos
 - [1789~1799] French Revolution
 - [1791~1804] Haitian Revolution
 - [1776] American Declaration of Independence
@@ -34,9 +54,14 @@ Create timelines in your notes by opening a `chronos` codeblock and adding items
 
 ![quickstart example](./docs/ex-comment.png)
 
-You can insert blank, basic, or advanced templates using the Command Pallete (`ctrl/cmd` + `p`, "Chronos")
+## Command Palette Templates
 
-### Insert basic template
+Use the Command Palette (`ctrl/cmd` + `p`) to insert templates:
+
+- **Insert geological timeline example (Mesozoic)** - NEW! 🦕
+- **Insert geological timeline example (Precambrian)** - NEW! 🌍
+- Insert timeline (blank)
+- Insert basic template
 
 ![palette example basic](./docs/ex-palette-basic.gif)
 
@@ -60,11 +85,11 @@ Input can be long text in your notes with time information, or vague like:
 
 ### Cheatsheet
 
-After installing the Chronos Timeline plugin, paste the contents of [this cheatsheet](./docs/chronos-cheatsheet.md) into a file in your vault to play with examples
+After installing the Geochronos plugin, paste the contents of [this cheatsheet](./docs/geochronos-cheatsheet.md) into a file in your vault to play with examples. If you still have older notes that use the `chronos` fence, they continue to render thanks to the built-in alias.
 
 ## Contents
 
-- [Chronos Timeline: interactive timelines for Obsidian](#chronos-timeline-interactive-timelines-for-obsidian)
+- [Geochronos: geological timelines for Obsidian](#geochronos-geological-timelines-for-obsidian)
     - [Features](#features)
     - [Quickstart](#quickstart)
         - [Insert blank](#insert-blank)
@@ -108,15 +133,15 @@ After installing the Chronos Timeline plugin, paste the contents of [this cheats
 
 # Syntax Overview
 
-Chronos parses Markdown in `chronos` code blocks into objects on a timeline
+Geochronos parses Markdown in `geochronos` code blocks into objects on a timeline. For backwards compatibility, legacy `chronos` fences are still recognized.
 
 ````markdown
-```chronos
-<chronos timeline items here>
+```geochronos
+<geochronos timeline items here>
 ```
 ````
 
-The first character of each line in your `chronos` block determines the item type:
+The first character of each line in your `geochronos` block determines the item type:
 
 - [Events](#events--) (`-`)
 - [Periods](#periods-) (`@`)
@@ -129,7 +154,7 @@ Certain items can be modified with colors and group membership (see [Modifiers](
 
 ## A note on dates
 
-Chronos can visualize dates from the year down to the second level, using the syntax `YYYY-MM-DDThh:mm:ss`.
+Geochronos can visualize dates from the year down to the second level, using the syntax `YYYY-MM-DDThh:mm:ss`.
 
 The only required component of a date is the year (`YYYY`). Beyond that, you can specify additional time granularity as needed for your use case.
 
@@ -196,7 +221,7 @@ Only `[Date]` is required. If no `Event Name` is provided, the event title will 
 **Example**
 
 ````markdown
-```chronos
+```geochronos
 - [1879-03-14] Einstein born
 ```
 ````
@@ -216,7 +241,7 @@ A date range is represented with a tilde (`~`) between the start and end dates.
 **Example**
 
 ````markdown
-```chronos
+```geochronos
 - [1991~2001] Time I believed in Santa
 ```
 ````
@@ -230,7 +255,7 @@ You can add additional information to an event by adding a pipe `|` after the Ev
 **Example**
 
 ````markdown
-```chronos
+```geochronos
 - [1991~2001] Time I believed in Santa | ended when my brother tried to videotape Santa with a hidden camera
 ```
 ````
@@ -248,7 +273,7 @@ Periods are spans of time displayed with a semi-transparent background. **Period
 **Example**
 
 ````markdown
-```chronos
+```geochronos
 @ [-300~250] #red Yayoi Period
 - [-100] Introduction of rice cultivation
 - [-57] Japan’s first recorded contact with China
@@ -270,7 +295,7 @@ Points are ideal for marking a point in time. You can optionally add a `Descript
 ```
 
 ````markdown
-```chronos
+```geochronos
 - [2024-02-26~2024-03-10] Tournament
 * [2024-02-26] Game 1 | Austin
 * [2024-02-28] Game 2 | Los Angeles
@@ -292,7 +317,7 @@ Markers can be used to highlight a key milestone in time. **Markers must be a si
 **Example**
 
 ````markdown
-```chronos
+```geochronos
 = [1440] Invention of the Gutenberg Press
 
 - [1455] Gutenberg Bible Printed
@@ -305,13 +330,13 @@ Markers can be used to highlight a key milestone in time. **Markers must be a si
 
 ## Comments `#`
 
-Chronos will ignore any line that starts with `#`. You can use this to write comments to yourself or block out items.
+Geochronos will ignore any line that starts with `#`. You can use this to write comments to yourself or block out items.
 
 **Example**
 
 ````markdown
-```chronos
-# this line is a comment, it will be ignored by chronos
+```geochronos
+# this line is a comment, it will be ignored by geochronos
 
 - [1789~1799] French Revolution
 - [1791~1804] Haitian Revolution
@@ -331,7 +356,7 @@ You can add flags to your timeline by using the `>` symbol. Flags are parsed on 
 Example: The timeline below uses the `NOTODAY` and `ORDERBY` flags, to hide the current time marker and to order the stack of overlapping items by start date.
 
 ````markdown
-```chronos
+```geochronos
 > NOTODAY
 > ORDERBY start
 
@@ -351,7 +376,7 @@ Hide the vertical bar that marks today's time
 (without flag)
 
 ````markdown
-```chronos
+```geochronos
 - [2025-02-02~2025-03-28] foo
 ```
 ````
@@ -361,7 +386,7 @@ Hide the vertical bar that marks today's time
 (with flag)
 
 ````markdown
-```chronos
+```geochronos
 > NOTODAY
 - [2025-02-02~2025-03-28] foo
 ```
@@ -381,7 +406,7 @@ If needed, you can vertically scroll your timleline by clicking and dragging up 
 ```
 
 ````markdown
-```chronos
+```geochronos
 > HEIGHT 300
 
 - [2025-02-02~2025-03-28] foo 1
@@ -394,13 +419,26 @@ If needed, you can vertically scroll your timleline by clicking and dragging up 
 - [2025-02-02~2025-03-28] foo 8
 - [2025-02-02~2025-03-28] foo 9
 ```
+
+### AGES flag
+
+Populate the timeline with International Commission on Stratigraphy (ICS) age bands, using their official boundaries and color palette. This is handy when you want a ready-made geological backdrop for fossil records, evolution notes, or sediment cores.
+
+````markdown
+```geochronos
+> AGES
+
+* [0.0042Ma] Meghalayan start
+- [0.066Ma~0.056Ma] Late Cretaceous | still dominated by dinosaurs
+```
+````
 ````
 
 ![height example](./docs/ex-height.gif)
 
 ### ORDERBY flag
 
-By default, Chronos ordering is set by the stacking of the elements in the timeline.
+By default, Geochronos ordering is set by the stacking of the elements in the timeline.
 
 The `ORDERBY` flag can be used to specify an ordering
 
@@ -421,7 +459,7 @@ The `ORDERBY` flag can be used to specify an ordering
 **Order by start date**
 
 ````markdown
-```chronos
+```geochronos
 > ORDERBY start
 
 - [2026~2028] Event D
@@ -436,7 +474,7 @@ The `ORDERBY` flag can be used to specify an ordering
 **Order by color and start**
 
 ````markdown
-```chronos
+```geochronos
 > ORDERBY color|start
 
 - [2026~2028] Event D
@@ -453,7 +491,7 @@ The `ORDERBY` flag can be used to specify an ordering
 
 Use the `> DEFAULTVIEW start|end` flag to specify default start and end dates for your timeline's initial load. You can use YYYY-MM-DD timestamps for the start and end date, with the minimum requirement being YYYY.
 
-```chronos
+```geochronos
 > DEFAULTVIEW  -3000|3000
 
 - [2024] AGI
@@ -473,14 +511,14 @@ The modifiers must go in this order: between `Dates` and `Name`, with color firs
 
 ### Colors `#color`
 
-By default, Chronos matches your Obsidian theme color.
+By default, Geochronos matches your Obsidian theme color.
 
 To give items a specific color, you can include an available color after the date: `#red` | `#orange` | `#yellow` | `#green` | `#blue` | `purple` | `#pink` | `#cyan`
 
 **Example**
 
 ````markdown
-```chronos
+```geochronos
 - [2001~2009] #red Bush
 - [2009~2017] #blue Obama
 - [2017~2021] #red Trump
@@ -501,7 +539,7 @@ The order of items does not matter, but the example below lumps items together b
 **Example**
 
 ````markdown
-```chronos
+```geochronos
 @ [1892-10-08~1941-08-31]{Marina Tsvetaeva} 1892-1941
 - [1916] {Marina Tsvetaeva} "Подруга"
 - [1928] {Marina Tsvetaeva}  "Поэма концов"
@@ -521,7 +559,7 @@ The order of items does not matter, but the example below lumps items together b
 This example combines **Events**, **Periods**, **Markers**, **Comments**, **Descriptions**, **Groups** and **Colors**
 
 ````markdown
-```chronos
+```geochronos
 - [1945-07-17] {Europe} Potsdam Conference | where post-WWII Europe is divided
 - [1947-03-12] {USA} Truman Doctrine | committing the U.S. to containing communism
 - [1948-06-24~1949-05-12] {Europe} Berlin Blockade | and Airlift in response to Soviet actions in Berlin
@@ -565,7 +603,7 @@ This example combines **Events**, **Periods**, **Markers**, **Comments**, **Desc
 
 # Note linking (beta)
 
-Link to other notes in your vault by adding a wiki link to either the item name or description. Type `[[` then a few characters in your note title for Obsidan to auto-suggest a path to insert. Chronos will link to the **first link** provided in an item.
+Link to other notes in your vault by adding a wiki link to either the item name or description. Type `[[` then a few characters in your note title for Obsidan to auto-suggest a path to insert. Geochronos will link to the **first link** provided in an item.
 
 Works for Event and Point type items. You can add a link to the item name (link path visible), or the description (link path hidden). Items with a link will appear underlined.
 
@@ -577,7 +615,7 @@ Works for Event and Point type items. You can add a link to the item name (link 
 Examples:
 
 ````markdown
-```chronos
+```geochronos
 - [2021~2022] No link
 - [2023~2024] With link [[path/to/note]]
 - [2022~2024] Link in description | [[path/to/note]]
@@ -590,12 +628,12 @@ Examples:
 You can link directly to a section heading in a note by adding `#section name` to the path
 
 ````markdown
-```chronos
+```geochronos
 - [2021~2022] My long note | [[path/to/note#section]]
 ```
 ````
 
-> Note: Moving or renaming a note SOMETIMES updates links in your Chronos timeline blocks, if the path is used for the link (not an alias, ex: just `note` instead of `path/to/note`). I'm working on updating alias links safely
+> Note: Moving or renaming a note SOMETIMES updates links in your Geochronos timeline blocks, if the path is used for the link (not an alias, ex: just `note` instead of `path/to/note`). I'm working on updating alias links safely
 
 ## Previewing links
 
@@ -605,7 +643,7 @@ While hovering a timeline item with a link, press Control or Command to show a p
 
 # Dynamic Timelines
 
-Turn your Obsidian notes into living, breathing timelines that **update automatically** as you work. By combining Chronos with [Dataview](https://blacksmithgu.github.io/obsidian-dataview/), you can create timelines that dynamically reflect your notes, tasks, or any other data in your vault.
+Turn your Obsidian notes into living, breathing timelines that **update automatically** as you work. By combining Geochronos with [Dataview](https://blacksmithgu.github.io/obsidian-dataview/), you can create timelines that dynamically reflect your notes, tasks, or any other data in your vault.
 
 ## Prerequisites
 
@@ -636,8 +674,8 @@ let events = pages
 	})
 	.join("\n");
 
-const chronosBlock = `\`\`\`chronos\n${events}\n\`\`\``;
-dv.paragraph(chronosBlock);
+const geochronosBlock = `\`\`\`geochronos\n${events}\n\`\`\``;
+dv.paragraph(geochronosBlock);
 ```
 ````
 
@@ -661,14 +699,14 @@ let events = contacts
 	.join("\n");
 
 // Add some styling
-const chronosBlock = `\`\`\`chronos
+const geochronosBlock = `\`\`\`geochronos
 > ORDERBY start
 
 # Birthday Timeline
 ${events}
 \`\`\``;
 
-dv.paragraph(chronosBlock);
+dv.paragraph(geochronosBlock);
 ```
 ````
 
@@ -693,7 +731,7 @@ let birthdayEvents = contacts
 	.join("\n");
 
 // Combine with static events
-const chronosBlock = `\`\`\`chronos
+const geochronosBlock = `\`\`\`geochronos
 > ORDERBY start
 
 # Important Dates
@@ -705,7 +743,7 @@ const chronosBlock = `\`\`\`chronos
 ${birthdayEvents}
 \`\`\``;
 
-dv.paragraph(chronosBlock);
+dv.paragraph(geochronosBlock);
 ```
 ````
 
@@ -722,7 +760,7 @@ The **timeline updates automatically** whenever your source notes change!
 
 ## Edit
 
-To enter **Edit** mode an update your `chronos` Markdown, hover over the timeline and click the code icon that appears in the upper-right corner.
+To enter **Edit** mode and update your `geochronos` Markdown, hover over the timeline and click the code icon that appears in the upper-right corner.
 
 ![edit example](./docs/ex-edit.png)
 ![edit example - markdown mode](./docs/ex-edit-2.png)
@@ -735,7 +773,7 @@ Click the **Refit** button (crosshairs icon) in the lower-right corner to adjust
 
 # Localization
 
-You can choose your preferred language for dates, from the Chronos Timeline plugin settings.
+You can choose your preferred language for dates from the Geochronos plugin settings.
 
 Available options depend on your system's language settings.
 

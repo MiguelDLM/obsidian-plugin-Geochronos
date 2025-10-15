@@ -1,6 +1,6 @@
 import { setTooltip } from "obsidian";
 import { Timeline, TimelineOptions } from "vis-timeline";
-import { DataSet, moment } from "vis-timeline/standalone";
+import { DataSet } from "vis-timeline/standalone";
 import crosshairsSvg from "../assets/icons/crosshairs.svg";
 import {
 	Marker,
@@ -15,6 +15,12 @@ import { smartDateRange } from "../util/smartDateRange";
 import { ChronosMdParser } from "./ChronosMdParser";
 import { orderFunctionBuilder } from "./flags";
 import { chronosMoment } from "./chronosMoment";
+import { maToISO } from "../util/geologicalDateUtil";
+import { toUTCDate } from "../util/utcUtil";
+import {
+	GeologicalPeriod,
+	getPeriodsByRank,
+} from "./geologicalTimeScale";
 
 const MS_UNTIL_REFIT = 100;
 
@@ -63,7 +69,17 @@ export class ChronosTimeline {
 				options.verticalScroll = true;
 			}
 
-			const timeline = this._createTimeline(items, groups, options);
+			let workingItems = items;
+			if (flags?.geologyOverlays?.length) {
+				const overlayItems = this._createGeologicalOverlayItems(
+					flags.geologyOverlays,
+				);
+				if (overlayItems.length) {
+					workingItems = [...overlayItems, ...items];
+				}
+			}
+
+			const timeline = this._createTimeline(workingItems, groups, options);
 			this._addMarkers(timeline, markers);
 			this._setupTooltip(timeline, items);
 			this._createRefitButton(timeline);
@@ -107,6 +123,30 @@ export class ChronosTimeline {
 			align: this.settings.align,
 			// locale: this.settings.selectedLocale,
 			moment: (date: Date) => chronosMoment(date, this.settings),
+			format: {
+				minorLabels: {
+					millisecond: "SSS",
+					second: "s",
+					minute: "HH:mm",
+					hour: "HH:mm",
+					weekday: "ddd D",
+					day: "D",
+					week: "w",
+					month: "MMM",
+					year: "YYYY",
+				},
+				majorLabels: {
+					millisecond: "HH:mm:ss",
+					second: "D MMMM HH:mm",
+					minute: "ddd D MMMM",
+					hour: "ddd D MMMM",
+					weekday: "MMMM YYYY",
+					day: "MMMM YYYY",
+					week: "MMMM YYYY",
+					month: "YYYY",
+					year: "YYYY",
+				},
+			},
 		};
 	}
 
@@ -118,7 +158,7 @@ export class ChronosTimeline {
 	}
 
 	private _formatErrorMessages(error: Error): string {
-		return `Error(s) parsing chronos markdown. Hover to edit: \n\n${error.message
+		return `Error(s) parsing geochronos markdown. Hover to edit: \n\n${error.message
 			.split(";;")
 			.map((msg) => `  - ${msg}`)
 			.join("\n\n")}`;
@@ -241,6 +281,80 @@ export class ChronosTimeline {
 		});
 
 		return { updatedItems, updatedGroups };
+	}
+
+	private _createGeologicalOverlayItems(
+		ranks: GeologicalPeriod["rank"][],
+	): ChronosDataItem[] {
+		const overlays: ChronosDataItem[] = [];
+		const seen = new Set<string>();
+
+		ranks.forEach((rank) => {
+			const periods = getPeriodsByRank(rank);
+			periods.forEach((period) => {
+				const slug = period.name
+					.toLowerCase()
+					.replace(/[^a-z0-9]+/g, "-")
+					.replace(/(^-|-$)/g, "");
+				const overlayId = `overlay-${rank.toLowerCase()}-${slug}`;
+
+				if (seen.has(overlayId)) {
+					return;
+				}
+
+				seen.add(overlayId);
+
+				overlays.push({
+					id: overlayId,
+					content: period.name,
+					start: toUTCDate(maToISO(period.start)),
+					end: toUTCDate(maToISO(period.end)),
+					type: "background",
+					className: `geology-overlay geology-overlay-${rank.toLowerCase()}`,
+					style: this._buildOverlayStyle(period),
+				});
+			});
+		});
+
+		return overlays;
+	}
+
+	private _buildOverlayStyle(period: GeologicalPeriod): string | undefined {
+		const styles: string[] = ["border: none"];
+		if (period.color) {
+			const rgba = this._hexToRgba(period.color, 0.18);
+			if (rgba) {
+				styles.push(`background-color: ${rgba}`);
+			}
+		}
+		styles.push("color: var(--text-normal)");
+		styles.push("font-weight: 600");
+		return styles.join("; ");
+	}
+
+	private _hexToRgba(hex: string, alpha: number): string | null {
+		const sanitized = hex.replace("#", "");
+		if (![3, 6].includes(sanitized.length)) {
+			return null;
+		}
+
+		const expanded =
+			sanitized.length === 3
+				? sanitized
+						.split("")
+						.map((char) => char + char)
+						.join("")
+				: sanitized;
+
+		const r = parseInt(expanded.slice(0, 2), 16);
+		const g = parseInt(expanded.slice(2, 4), 16);
+		const b = parseInt(expanded.slice(4, 6), 16);
+
+		if ([r, g, b].some((value) => Number.isNaN(value))) {
+			return null;
+		}
+
+		return `rgba(${r}, ${g}, ${b}, ${alpha})`;
 	}
 
 	private _createDataGroups(rawGroups: Group[]) {

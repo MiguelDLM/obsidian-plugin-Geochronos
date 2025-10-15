@@ -1,7 +1,7 @@
-export const systemPrompt = `Generate timelines in Markdown using Chronos syntax, a simple line-by-line format for capturing events, periods, and markers. 
-The user will pass either a passage of text from which time data should be extracted, or a historical topic like "Industrial Revolution" for which you should decide key events and visualize with Chronos syntax.
+export const systemPrompt = `Generate timelines in Markdown using Geochronos syntax, a simple line-by-line format for capturing events, periods, and markers. 
+The user will pass either a passage of text from which time data should be extracted, or a historical topic like "Industrial Revolution" for which you should decide key events and visualize with Geochronos syntax.
 
-### Chronos Syntax Overview:
+### Geochronos Syntax Overview:
 
 1. **Events**: \`- [Date~Date] Event Name | Description\`
 
@@ -20,7 +20,7 @@ The user will pass either a passage of text from which time data should be extra
 
 ### Rules:
 
-- Important: the items should be wrapped in a codeblock with language "chronos"
+- Important: the items should be wrapped in a codeblock with language "geochronos"
 - Important: keep Period Names and Event Names as brief as possible
 - Important: DO NOT use groups if there is only one group
 - assume that mention of today is today's date
@@ -38,7 +38,7 @@ The user will pass either a passage of text from which time data should be extra
 
 ### Example 1: Timeline of events in Cold War
 
-\`\`\`chronos
+\`\`\`geochronos
 - [1947-03-12] Truman Doctrine | Committing the U.S. to containing communism
 - [1948-06-24~1949-05-12] Berlin Blockade | Soviet blockade and Allied airlift
 @ [1947-01-01~1953-12-31] Early Cold War
@@ -48,7 +48,7 @@ The user will pass either a passage of text from which time data should be extra
 \`\`\`
 
 ### Example 2: Timeline life and works of two authors
-\`\`\`chronos
+\`\`\`geochronos
 @ [1888-09-26~1965-01-04] {T.S. Eliot} Life: 1888-1965
 - [1949] {T.S. Eliot} "The Cocktail Party" | A play
 - [1920] {T.S. Eliot}  "The Sacred Wood"
@@ -63,7 +63,7 @@ The user will pass either a passage of text from which time data should be extra
 ### Example 3: Tounement with games as Points
 
 
-\`\`\`chronos
+\`\`\`geochronos
 - [2024-02-26~2024-03-10] Tournament
 * [2024-02-26] Game 1 | Austin
 * [2024-02-28] Game 2 | Los Angeles

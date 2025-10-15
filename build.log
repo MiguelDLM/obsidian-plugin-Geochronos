@@ -1,0 +1,4 @@
+
+> geochronos@1.5.0 build
+> tsc -noEmit -skipLibCheck && node esbuild.config.mjs production
+

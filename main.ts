@@ -19,11 +19,15 @@ import {
 	templateAdvanced,
 	templateBasic,
 	templateBlank,
+	templateGeological,
+	templateGeologicalPrecambrian,
 } from "./util/snippets";
 import { DEFAULT_LOCALE, PEPPER } from "./constants";
 import { ChronosTimeline } from "./lib/ChronosTimeline";
 import { decrypt, encrypt } from "./util/vanillaEncrypt";
 import { GenAi } from "./lib/ai/GenAi";
+
+const TIMELINE_LANG_ALIASES = ["geochronos", "chronos"];
 
 const DEFAULT_SETTINGS: ChronosPluginSettings = {
 	selectedLocale: DEFAULT_LOCALE,
@@ -49,10 +53,12 @@ export default class ChronosPlugin extends Plugin {
 			}),
 		);
 
-		this.registerMarkdownCodeBlockProcessor(
-			"chronos",
-			this._renderChronosBlock.bind(this),
-		);
+		TIMELINE_LANG_ALIASES.forEach((lang) => {
+			this.registerMarkdownCodeBlockProcessor(
+				lang,
+				(source, el) => this._renderChronosBlock(source, el),
+			);
+		});
 
 		this.addCommand({
 			id: "insert-timeline-blank",
@@ -77,6 +83,23 @@ export default class ChronosPlugin extends Plugin {
 				this._insertSnippet(editor, templateAdvanced);
 			},
 		});
+		
+		this.addCommand({
+			id: "insert-timeline-geological",
+			name: "Insert geological timeline example (Mesozoic)",
+			editorCallback: (editor, _view) => {
+				this._insertSnippet(editor, templateGeological);
+			},
+		});
+		
+		this.addCommand({
+			id: "insert-timeline-geological-precambrian",
+			name: "Insert geological timeline example (Precambrian)",
+			editorCallback: (editor, _view) => {
+				this._insertSnippet(editor, templateGeologicalPrecambrian);
+			},
+		});
+		
 		this.addCommand({
 			id: "generate-timeline-ai",
 			name: "Generate timeline with AI",
@@ -351,14 +374,17 @@ export default class ChronosPlugin extends Plugin {
 		const files = this.app.vault.getMarkdownFiles();
 
 		const updatedFiles = [];
+		const blockNames = TIMELINE_LANG_ALIASES.map((lang) => `'${lang}'`).join(", ");
+		const fencePattern = TIMELINE_LANG_ALIASES.join("|");
+		const fenceTest = new RegExp("```(?:\\s*)(?:" + fencePattern + ")");
 		console.log(
-			`Checking files for 'chronos' blocks to see whether there is a need to update links to ${this._normalizePath(
+			`Checking files for ${blockNames} blocks to see whether there is a need to update links to ${this._normalizePath(
 				newPath,
 			)}...`,
 		);
 		for (const file of files) {
 			const content = await this.app.vault.read(file);
-			const hasChronosBlock = /```(?:\s*)chronos/.test(content);
+			const hasChronosBlock = fenceTest.test(content);
 			if (hasChronosBlock) {
 				const updatedContent = this._updateLinksInChronosBlocks(
 					content,
@@ -374,7 +400,7 @@ export default class ChronosPlugin extends Plugin {
 				}
 			}
 		}
-		console.log(`Done checking files with 'chronos' blocks.`);
+	console.log(`Done checking files with ${blockNames} blocks.`);
 		if (updatedFiles.length) {
 			console.log(
 				`Updated links to ${this._normalizePath(newPath)} in ${
@@ -390,13 +416,18 @@ export default class ChronosPlugin extends Plugin {
 		oldPath: string,
 		newPath: string,
 	): string {
-		const codeFenceRegex = /```(?:\s*)chronos([\s\S]*?)```/g;
+		const fencePattern = TIMELINE_LANG_ALIASES.join("|");
+		const codeFenceRegex = new RegExp(
+			"```(?:\\s*)(" + fencePattern + ")([\\s\\S]*?)```",
+			"g",
+		);
 		let match: RegExpExecArray | null;
 		let modifiedContent = content;
 
 		while ((match = codeFenceRegex.exec(content)) !== null) {
 			const originalFence = match[0];
-			const fenceContent = match[1];
+			const fenceLang = match[1];
+			const fenceContent = match[2];
 
 			const normalizedOldPath = this._normalizePath(oldPath);
 			const normalizedNewPath = this._normalizePath(newPath);
@@ -413,7 +444,7 @@ export default class ChronosPlugin extends Plugin {
 			// Replace the entire code fence in the content
 			modifiedContent = modifiedContent.replace(
 				originalFence,
-				`\`\`\`chronos${updatedFenceContent}\`\`\``,
+				"```" + fenceLang + updatedFenceContent + "```",
 			);
 		}
 
