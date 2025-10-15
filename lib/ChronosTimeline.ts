@@ -32,6 +32,7 @@ export class ChronosTimeline {
 	private eventHandlers: { [key: string]: (event: any) => void } = {};
 	items: ChronosDataItem[] | undefined;
 	timeline: Timeline | undefined;
+	userItemIds: (string | number)[] = [];
 
 	constructor({ container, settings }: ChronosTimelineConstructor) {
 		this.container = container;
@@ -45,6 +46,8 @@ export class ChronosTimeline {
 				source,
 				this.settings,
 			);
+
+			this.userItemIds = items.flatMap((item) => (item.id ? [item.id] : []));
 
 			const options = this._getTimelineOptions();
 
@@ -126,7 +129,10 @@ export class ChronosTimeline {
 
 	private _getTimelineOptions(): TimelineOptions {
 		return {
-			zoomMax: 2.997972e14, // 9500 years - vis timeline seems to break at larger range
+			min: new Date(maToISO(4600)), // Earth's formation
+			max: new Date(maToISO(0.0209)), // ~20.9k years, chosen as the limit
+			zoomMax: 2e14, // Allows zooming out to see ~220,000 virtual years (approx. 4600 Ma)
+			zoomMin: 15147648000, // Prevents zooming beyond 2 decimal places of Ma
 			zoomable: true,
 			selectable: true,
 			minHeight: "200px",
@@ -245,7 +251,36 @@ export class ChronosTimeline {
 
 		refitButton.appendChild(document.importNode(svgElement, true));
 		setTooltip(refitButton, "Fit all");
-		refitButton.addEventListener("click", () => timeline.fit());
+		refitButton.addEventListener("click", () => {
+			if (this.userItemIds && this.userItemIds.length > 0) {
+				const userItems = (this.items || []).filter(
+					(item) => item.id && this.userItemIds.includes(item.id)
+				);
+
+				if (userItems.length > 0) {
+					const itemDates = userItems.flatMap((item) => {
+						const dates = [];
+						if (item.start) dates.push(new Date(item.start).getTime());
+						if (item.end) dates.push(new Date(item.end).getTime());
+						return dates;
+					});
+
+					if (itemDates.length > 0) {
+						let minTime = Math.min(...itemDates);
+						let maxTime = Math.max(...itemDates);
+
+						// Add 10% padding
+						const padding = (maxTime - minTime) * 0.1;
+						minTime -= padding;
+						maxTime += padding;
+
+						timeline.setWindow(new Date(minTime), new Date(maxTime));
+					}
+				}
+			} else {
+				timeline.fit();
+			}
+		});
 	}
 
 	private _updateTooltipCustomMarkers() {

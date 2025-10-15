@@ -36,6 +36,7 @@ export function formatGeologicalAxis(
 	}
 }
 
+
 /**
  * Format modern dates (CE) for the axis
  */
