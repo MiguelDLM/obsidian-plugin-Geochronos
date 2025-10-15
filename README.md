@@ -135,9 +135,9 @@ A high-level overview of the last ~540 million years, highlighting the "Big Five
 - [66Ma] #red {Mesozoic} K-Pg Extinction | End of the dinosaurs
 ```
 
-### 2. Comprehensive Cenozoic Era with Geological Flags
+### 2. Cenozoic example with points, markers and groups
 
-This example showcases the power of the geological flags. It plots key events in the Cenozoic Era against the official Period, Epoch, and Age subdivisions from the International Chronostratigraphic Chart.
+This example shows a typical Cenozoic timeline but includes "points" (single occurrences), "markers" and grouping by region or taxon. Use groups for swimlanes (e.g. geographic regions or taxonomic clades) — geological periods are rendered as background lanes via flags and should not be duplicated as groups.
 
 ```geochronos
 # Cenozoic Era - "Age of Mammals"
@@ -147,33 +147,44 @@ This example showcases the power of the geological flags. It plots key events in
 
 @ [66Ma~0.0209Ma] #yellow Cenozoic Era
 
-- [65Ma] {Paleogene} Diversification of mammals
-- [56Ma] {Paleogene} PETM | Paleocene-Eocene Thermal Maximum
-- [50Ma] {Paleogene} India collides with Asia, forming the Himalayas
-- [34Ma] {Paleogene} Grande Coupure | Major extinction event
-- [23Ma] {Neogene} Grasslands and kelp forests expand
-- [5.3Ma] {Neogene} Messinian Salinity Crisis
-- [2.6Ma] {Quaternary} Beginning of Pleistocene ice ages
-- [0.3Ma] {Quaternary} Homo sapiens appears
-- [0.07Ma] {Quaternary} "Out of Africa" migration
+> DEFAULTVIEW 66Ma|0.02Ma
+
+- [65Ma] {North America} Diversification of mammals
+* [56Ma] {Eurasia} First horses (point occurrence)
+- [50Ma] {North America} India collides with Asia | Tectonic event recorded in deposits
+- [34Ma] {Europe} Grande Coupure | Major turnover (range/pulse)
+- [23Ma~20Ma] {North America} Grassland expansion (range)
+- [5.3Ma] {North America} Messinian-related marine event
+- [2.6Ma] {Canids} First widespread Canid fossils
+- [0.3Ma] {Hominins} Homo sapiens appears
+- [0.07Ma] Out of Africa | Marker for dispersal event
+
+// Example: a point inside a group (single specimen occurrence)
+* [0.012Ma] {Hominins} "Fin de la Edad de Hielo" | single occurrence point (interpreted as 12.0 Ka)
+
 ```
 
-### 3. History of Earth's Supercontinents
+### 3. Faunal occurrences and taxonomic groups (useful example)
 
-Visualize the assembly and breakup of Earth's supercontinents over billions of years.
+Instead of using geological periods as groups (they are already shown as background lanes), this example shows how to use groups for taxonomic clades or geographic regions to plot first/last occurrences and specimen records.
 
 ```geochronos
-# Supercontinents and Continental Drift
-> EONS
+# Faunal occurrences — taxonomic groups and specimen points
+> AGES
 
-- [3600Ma] Vaalbara | First hypothetical supercontinent
-- [2700Ma] Kenorland
-- [2100Ma~1800Ma] #blue {Columbia} Columbia/Nuna Supercontinent
-- [1300Ma~900Ma] #green {Rodinia} Rodinia Supercontinent
-- [600Ma~540Ma] #purple {Pannotia} Pannotia Supercontinent
-- [335Ma~175Ma] #red {Pangea} Pangea Supercontinent
-- [175Ma] Pangea begins to fragment
-- [50Ma] India collides with Asia | Formation of the Himalayas
+@ [23Ma~2.6Ma] #cyan {Neogene} Neogene overview
+
+- [22Ma] {Canids} Early Canid diversification | range start
+- [18Ma] {Canids} Canid peak diversity
+- [5Ma] {Canids} Modern Canid radiation
+
+- [20Ma] {Felids} Early Felid appearance
+* [3.6Ma] {Felids} Specimen: Panthera sp. (fossil locality A)
+
+- [2.6Ma] {Hominins} Beginning of ice-age cycles
+* [0.3Ma] {Hominins} Homo sapiens appears
+
+// Groups here are taxonomic swimlanes; geological flags provide the background timescales
 ```
 
 ## Differences from Original Chronos

@@ -97,13 +97,12 @@ export class ChronosTimeline {
 			this._setupTooltip(timeline, items);
 			this._createRefitButton(timeline);
 			// for whatever reason, timelines with groups render wonky on first paint and can be remedied by zooming in an out...
-			this._handleZoomWorkaround(timeline, workingGroups);
+			this._handleZoomWorkaround(timeline, workingGroups, !hasDefaultViewFlag);
 
 			this.timeline = timeline;
 
-			// Ensure all items are visible by default
-			!hasDefaultViewFlag &&
-				setTimeout(() => timeline.fit(), MS_UNTIL_REFIT);
+			// Ensure all items are visible by default - moved to after zoom workaround
+			// (the fit will be called after the jiggle if needed)
 		} catch (error) {
 			this._handleParseError(error);
 		}
@@ -471,13 +470,16 @@ export class ChronosTimeline {
 		return new DataSet<Group>(rawGroups.map((g) => ({ ...g })));
 	}
 
-	private _handleZoomWorkaround(timeline: Timeline, groups: Group[]) {
+	private _handleZoomWorkaround(timeline: Timeline, groups: Group[], shouldFitAfter: boolean = false) {
 		if (groups.length) {
-			setTimeout(() => this._jiggleZoom(timeline), MS_UNTIL_REFIT + 50);
+			setTimeout(() => this._jiggleZoom(timeline, shouldFitAfter), MS_UNTIL_REFIT + 50);
+		} else if (shouldFitAfter) {
+			// No groups, just fit
+			setTimeout(() => timeline.fit(), MS_UNTIL_REFIT);
 		}
 	}
 
-	private _jiggleZoom(timeline: Timeline) {
+	private _jiggleZoom(timeline: Timeline, shouldFitAfter: boolean = false) {
 		const range = timeline.getWindow();
 		const zoomFactor = 1.02;
 		const newStart = new Date(
@@ -498,6 +500,10 @@ export class ChronosTimeline {
 		// zoom back in
 		setTimeout(() => {
 			timeline.setWindow(range.start, range.end, { animation: true });
+			// Fit after jiggle if needed
+			if (shouldFitAfter) {
+				setTimeout(() => timeline.fit(), 250);
+			}
 		}, 200);
 	}
 }
