@@ -34,6 +34,7 @@ export class ChronosTimeline {
 	timeline: Timeline | undefined;
 	userItemIds: (string | number)[] = [];
 	private groupsDs?: DataSet<Group>;
+	private defaultViewWindow?: { start: Date; end: Date };
 
 	constructor({ container, settings }: ChronosTimelineConstructor) {
 		this.container = container;
@@ -41,7 +42,7 @@ export class ChronosTimeline {
 		this.parser = new ChronosMdParser(this.settings.selectedLocale);
 	}
 
-	render(source: string) {
+		render(source: string) {
 		try {
 			const { items, markers, groups, flags } = this.parser.parse(
 				source,
@@ -58,12 +59,7 @@ export class ChronosTimeline {
 			}
 
 			const hasDefaultViewFlag =
-				flags?.defaultView?.start && flags?.defaultView?.end;
-
-			if (hasDefaultViewFlag) {
-				options.start = flags?.defaultView?.start;
-				options.end = flags?.defaultView?.end;
-			}
+				Boolean(flags?.defaultView?.start && flags?.defaultView?.end);
 
 			if (flags?.noToday) {
 				options.showCurrentTime = false;
@@ -89,6 +85,22 @@ export class ChronosTimeline {
 				}
 			}
 
+			// Compute and set the initial window: use DEFAULTVIEW if provided; otherwise compute from content (excluding overlays)
+			if (hasDefaultViewFlag && flags?.defaultView?.start && flags.defaultView.end) {
+				const start = toUTCDate(flags.defaultView.start);
+				const end = toUTCDate(flags.defaultView.end);
+				options.start = start;
+				options.end = end;
+				this.defaultViewWindow = { start, end };
+			} else {
+				const bounds = this._computeContentBounds(workingItems);
+				if (bounds) {
+					options.start = bounds.start;
+					options.end = bounds.end;
+					this.defaultViewWindow = bounds;
+				}
+			}
+
 			const timeline = this._createTimeline(
 				workingItems,
 				workingGroups,
@@ -98,7 +110,8 @@ export class ChronosTimeline {
 			this._setupTooltip(timeline, items);
 			this._createRefitButton(timeline);
 			// for whatever reason, timelines with groups render wonky on first paint and can be remedied by zooming in an out...
-			this._handleZoomWorkaround(timeline, workingGroups, !hasDefaultViewFlag);
+			// We already set an explicit window above; only jiggle (no extra fit) to stabilize layout
+			this._handleZoomWorkaround(timeline, workingGroups, false);
 
 			this.timeline = timeline;
 
@@ -255,36 +268,7 @@ export class ChronosTimeline {
 		refitButton.appendChild(document.importNode(svgElement, true));
 		setTooltip(refitButton, "Fit all");
 		refitButton.addEventListener("click", () => {
-			if (this.userItemIds && this.userItemIds.length > 0) {
-				const userItems = (this.items || []).filter(
-					(item) => item.id && this.userItemIds.includes(item.id)
-				);
-
-				if (userItems.length > 0) {
-					const itemDates = userItems.flatMap((item) => {
-						const dates = [];
-						if (item.start) dates.push(new Date(item.start).getTime());
-						if (item.end) dates.push(new Date(item.end).getTime());
-						return dates;
-					});
-
-					if (itemDates.length > 0) {
-						let minTime = Math.min(...itemDates);
-						let maxTime = Math.max(...itemDates);
-
-						// Add 10% padding
-						const padding = (maxTime - minTime) * 0.1;
-						minTime -= padding;
-						maxTime += padding;
-
-						timeline.setWindow(new Date(minTime), new Date(maxTime));
-						setTimeout(() => this._forceRelayout(timeline), 60);
-					}
-				}
-			} else {
-				timeline.fit();
-				setTimeout(() => this._forceRelayout(timeline), 60);
-			}
+			this._fitToContent(timeline);
 		});
 	}
 
@@ -480,8 +464,8 @@ export class ChronosTimeline {
 		if (groups.length) {
 			setTimeout(() => this._jiggleZoom(timeline, shouldFitAfter), MS_UNTIL_REFIT + 50);
 		} else if (shouldFitAfter) {
-			// No groups, just fit
-			setTimeout(() => { timeline.fit(); this._forceRelayout(timeline); }, MS_UNTIL_REFIT);
+			// No groups, fit tightly to content
+			setTimeout(() => { this._fitToContent(timeline); }, MS_UNTIL_REFIT);
 		}
 	}
 
@@ -508,9 +492,63 @@ export class ChronosTimeline {
 			timeline.setWindow(range.start, range.end, { animation: true });
 			// Fit after jiggle if needed
 			if (shouldFitAfter) {
-				setTimeout(() => { timeline.fit(); this._forceRelayout(timeline); }, 250);
+				setTimeout(() => { this._fitToContent(timeline); }, 250);
 			}
 		}, 200);
+	}
+
+	private _fitToContent(timeline: Timeline) {
+		// If we have a stored default view (from DEFAULTVIEW flag or computed), use it verbatim
+		if (this.defaultViewWindow) {
+			timeline.setWindow(this.defaultViewWindow.start, this.defaultViewWindow.end, { animation: false });
+			setTimeout(() => this._forceRelayout(timeline), 60);
+			return;
+		}
+
+		// Otherwise compute bounds from current items
+		const bounds = this._computeContentBounds(this.items || []);
+		if (bounds) {
+			this.defaultViewWindow = bounds;
+			timeline.setWindow(bounds.start, bounds.end, { animation: false });
+			setTimeout(() => this._forceRelayout(timeline), 60);
+		} else {
+			// Fallback to default fit
+			timeline.fit();
+			setTimeout(() => this._forceRelayout(timeline), 60);
+		}
+	}
+
+	private _computeContentBounds(items: ChronosDataItem[]): { start: Date; end: Date } | null {
+		if (!items || !items.length) return null;
+		// Exclude geology overlay backgrounds and any background items
+		const contentItems = items.filter((it) => {
+			const hasOverlayClass = Boolean(it.className && it.className.includes("geology-lane"));
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			const isBackground = (it as any).type === "background";
+			return !hasOverlayClass && !isBackground;
+		});
+
+		const times = contentItems.flatMap((item) => {
+			const arr: number[] = [];
+			if (item.start) arr.push(new Date(item.start as Date).getTime());
+			if (item.end) arr.push(new Date(item.end as Date).getTime());
+			return arr;
+		});
+
+		if (!times.length) return null;
+
+		let minTime = Math.min(...times);
+		let maxTime = Math.max(...times);
+		// Ensure a minimal span
+		if (minTime === maxTime) {
+			maxTime = minTime + 1; // 1 ms minimal span
+		}
+		const span = Math.max(1, maxTime - minTime);
+		const leftPad = 0;        // no gap on the left
+		const rightPad = span * 0.02; // small gap on the right (~2%)
+		minTime = minTime - leftPad;
+		maxTime = maxTime + rightPad;
+		return { start: new Date(minTime), end: new Date(maxTime) };
 	}
 
 	private _forceRelayout(timeline: Timeline) {
@@ -519,13 +557,33 @@ export class ChronosTimeline {
 			if (this.groupsDs) {
 				timeline.setGroups(this.groupsDs);
 			}
-			// Re-apply the same window and perform multiple redraws
-			const win = timeline.getWindow();
-			timeline.setWindow(win.start, win.end, { animation: false });
+			
+			// Use the stored default view window to ensure we return to exact bounds
+			const targetWindow = this.defaultViewWindow || timeline.getWindow();
+			
+			// Toggle stack option to force layout engine to recompute lanes fully
+			timeline.setOptions({ stack: false } as unknown as TimelineOptions);
 			timeline.redraw();
-			// Double redraw to allow fonts/layout to stabilize
-			requestAnimationFrame(() => timeline.redraw());
-			setTimeout(() => timeline.redraw(), 80);
+			requestAnimationFrame(() => {
+				timeline.setOptions({ stack: true } as unknown as TimelineOptions);
+				timeline.redraw();
+			});
+			
+			// Subtle horizontal nudge to mimic the manual pan that resolves overlap
+			// but always return to the exact target window
+			setTimeout(() => {
+				const span = targetWindow.end.valueOf() - targetWindow.start.valueOf();
+				const delta = Math.max(1, Math.floor(span * 0.002)); // ~0.2%
+				const nudgeStart = new Date(targetWindow.start.valueOf() + delta);
+				const nudgeEnd = new Date(targetWindow.end.valueOf() + delta);
+				timeline.setWindow(nudgeStart, nudgeEnd, { animation: false });
+				setTimeout(() => {
+					// Always restore to the exact target window (DEFAULTVIEW or computed bounds)
+					timeline.setWindow(targetWindow.start, targetWindow.end, { animation: false });
+					timeline.redraw();
+				}, 40);
+			}, 60);
+			setTimeout(() => timeline.redraw(), 140);
 		} catch (e) {
 			// best effort; ignore errors
 		}
