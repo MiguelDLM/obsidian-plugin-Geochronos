@@ -33,6 +33,7 @@ export class ChronosTimeline {
 	items: ChronosDataItem[] | undefined;
 	timeline: Timeline | undefined;
 	userItemIds: (string | number)[] = [];
+	private groupsDs?: DataSet<Group>;
 
 	constructor({ container, settings }: ChronosTimelineConstructor) {
 		this.container = container;
@@ -185,7 +186,7 @@ export class ChronosTimeline {
 		options: TimelineOptions,
 	): Timeline {
 		let timeline: Timeline;
-		if (groups.length) {
+			if (groups.length) {
 			const { updatedItems, updatedGroups } = this.assignItemsToGroups(
 				items,
 				groups,
@@ -193,15 +194,18 @@ export class ChronosTimeline {
 
 			this.items = updatedItems;
 
+			const groupsDs = this._createDataGroups(updatedGroups);
+			this.groupsDs = groupsDs;
 			timeline = new Timeline(
 				this.container,
 				updatedItems,
-				this._createDataGroups(updatedGroups),
+				groupsDs,
 				options,
 			);
 		} else {
 			timeline = new Timeline(this.container, items, options);
 			this.items = items;
+				this.groupsDs = undefined;
 		}
 
 		setTimeout(() => this._updateTooltipCustomMarkers(), MS_UNTIL_REFIT);
@@ -274,10 +278,12 @@ export class ChronosTimeline {
 						maxTime += padding;
 
 						timeline.setWindow(new Date(minTime), new Date(maxTime));
+						setTimeout(() => this._forceRelayout(timeline), 60);
 					}
 				}
 			} else {
 				timeline.fit();
+				setTimeout(() => this._forceRelayout(timeline), 60);
 			}
 		});
 	}
@@ -475,7 +481,7 @@ export class ChronosTimeline {
 			setTimeout(() => this._jiggleZoom(timeline, shouldFitAfter), MS_UNTIL_REFIT + 50);
 		} else if (shouldFitAfter) {
 			// No groups, just fit
-			setTimeout(() => timeline.fit(), MS_UNTIL_REFIT);
+			setTimeout(() => { timeline.fit(); this._forceRelayout(timeline); }, MS_UNTIL_REFIT);
 		}
 	}
 
@@ -502,8 +508,26 @@ export class ChronosTimeline {
 			timeline.setWindow(range.start, range.end, { animation: true });
 			// Fit after jiggle if needed
 			if (shouldFitAfter) {
-				setTimeout(() => timeline.fit(), 250);
+				setTimeout(() => { timeline.fit(); this._forceRelayout(timeline); }, 250);
 			}
 		}, 200);
+	}
+
+	private _forceRelayout(timeline: Timeline) {
+		try {
+			// Re-apply groups to force vertical lane computation
+			if (this.groupsDs) {
+				timeline.setGroups(this.groupsDs);
+			}
+			// Re-apply the same window and perform multiple redraws
+			const win = timeline.getWindow();
+			timeline.setWindow(win.start, win.end, { animation: false });
+			timeline.redraw();
+			// Double redraw to allow fonts/layout to stabilize
+			requestAnimationFrame(() => timeline.redraw());
+			setTimeout(() => timeline.redraw(), 80);
+		} catch (e) {
+			// best effort; ignore errors
+		}
 	}
 }
