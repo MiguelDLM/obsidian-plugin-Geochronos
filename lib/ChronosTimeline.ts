@@ -505,7 +505,7 @@ export class ChronosTimeline {
 		// If we have a stored default view (from DEFAULTVIEW flag or computed), use it verbatim
 		if (this.defaultViewWindow) {
 			timeline.setWindow(this.defaultViewWindow.start, this.defaultViewWindow.end, { animation: false });
-			setTimeout(() => this._forceRelayout(timeline), 60);
+			setTimeout(() => this._jiggleZoom(timeline), 60);
 			return;
 		}
 
@@ -514,11 +514,11 @@ export class ChronosTimeline {
 		if (bounds) {
 			this.defaultViewWindow = bounds;
 			timeline.setWindow(bounds.start, bounds.end, { animation: false });
-			setTimeout(() => this._forceRelayout(timeline), 60);
+			setTimeout(() => this._jiggleZoom(timeline), 60);
 		} else {
 			// Fallback to default fit
 			timeline.fit();
-			setTimeout(() => this._forceRelayout(timeline), 60);
+			setTimeout(() => this._jiggleZoom(timeline), 60);
 		}
 	}
 
