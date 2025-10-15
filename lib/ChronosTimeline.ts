@@ -15,7 +15,7 @@ import { smartDateRange } from "../util/smartDateRange";
 import { ChronosMdParser } from "./ChronosMdParser";
 import { orderFunctionBuilder } from "./flags";
 import { chronosMoment } from "./chronosMoment";
-import { maToISO } from "../util/geologicalDateUtil";
+import { maToISO, isoToMa, formatMaRange } from "../util/geologicalDateUtil";
 import { toUTCDate } from "../util/utcUtil";
 import {
 	GeologicalPeriod,
@@ -217,12 +217,19 @@ export class ChronosTimeline {
 				event.item,
 			) as unknown as ChronosDataSetDataItem;
 			if (item) {
-				const text = `${item.content} (${smartDateRange(
-					item.start.toISOString(),
-					item.end?.toISOString() ?? null,
-					this.settings.selectedLocale,
-				)})${item.cDescription ? " \n " + item.cDescription : ""}`;
-				setTooltip(event.event.target, text);
+				let text: string;
+                if (item.isGeological) {
+                    const startMa = isoToMa(item.start.toISOString());
+                    const endMa = item.end ? isoToMa(item.end.toISOString()) : startMa;
+                    text = `${item.content} (${formatMaRange(startMa, endMa)})${item.cDescription ? " \n " + item.cDescription : ""}`;
+                } else {
+                    text = `${item.content} (${smartDateRange(
+                        item.start.toISOString(),
+                        item.end?.toISOString() ?? null,
+                        this.settings.selectedLocale,
+                    )})${item.cDescription ? " \n " + item.cDescription : ""}`;
+                }
+                setTooltip(event.event.target, text);
 			}
 		});
 	}

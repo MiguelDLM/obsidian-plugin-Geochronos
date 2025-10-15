@@ -1,0 +1,11 @@
+{
+	"id": "geochronos",
+	"name": "Geochronos - Geological Timelines",
+	"version": "1.5.0",
+	"minAppVersion": "0.15.0",
+	"description": "Render interactive geological timelines using millions of years (Ma). Fork of Chronos Timeline adapted for deep time.",
+	"author": "Miguel DLM (fork of Chronos by Claire Froelich)",
+	"authorUrl": "https://github.com/MiguelDLM",
+	"fundingUrl": "https://buymeacoffee.com/clairefro",
+	"isDesktopOnly": false
+}

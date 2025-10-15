@@ -6,14 +6,51 @@ const fs = require('fs');
 const path = require('path');
 const chokidar = require('chokidar');
 
-const DEFAULT_TARGET = path.join(process.env.HOME || '~', '.config', 'obsidian', 'geochronos');
-const target = process.argv[2] || process.env.OBSIDIAN_PLUGIN_DIR || DEFAULT_TARGET;
+// Try reading .env from project root (simple parser, no external deps)
+const readDotEnv = (envPath) => {
+  try {
+    if (!fs.existsSync(envPath)) return {};
+    const content = fs.readFileSync(envPath, 'utf8');
+    const lines = content.split(/\r?\n/);
+    const out = {};
+    for (let line of lines) {
+      line = line.trim();
+      if (!line || line.startsWith('#')) continue;
+      const idx = line.indexOf('=');
+      if (idx === -1) continue;
+      const key = line.slice(0, idx).trim();
+      let val = line.slice(idx + 1).trim();
+      // Remove surrounding quotes if present
+      if ((val.startsWith('"') && val.endsWith('"')) || (val.startsWith("'") && val.endsWith("'"))) {
+        val = val.slice(1, -1);
+      }
+      out[key] = val;
+    }
+    return out;
+  } catch (e) {
+    return {};
+  }
+};
+
+const projectEnv = readDotEnv(path.join(process.cwd(), '.env'));
+
+const DEFAULT_TARGET = path.join(process.env.HOME || process.env.USERPROFILE || '~', '.config', 'obsidian', 'geochronos');
+// Priority: CLI arg > .env OBSIDIAN_PLUGIN_DIR > env var OBSIDIAN_PLUGIN_DIR > default
+let cliArg = process.argv[2];
+// If running via `concurrently "node scripts/hot-reload.js $OBSIDIAN_PLUGIN_DIR"` on Windows
+// PowerShell may pass the literal string "$OBSIDIAN_PLUGIN_DIR" rather than expanding it.
+// Treat any CLI arg that starts with "$" as absent so .env or process.env can be used.
+if (typeof cliArg === 'string' && cliArg.startsWith('$')) {
+  console.warn('CLI argument appears to be a shell variable; ignoring CLI argument and using .env / process.env instead.');
+  cliArg = undefined;
+}
+const target = cliArg || projectEnv.OBSIDIAN_PLUGIN_DIR || process.env.OBSIDIAN_PLUGIN_DIR || DEFAULT_TARGET;
 
 const src = path.join(process.cwd(), 'main.js');
 
+// If source doesn't exist yet, don't exit — the watcher will pick it up when the builder produces it.
 if (!fs.existsSync(src)) {
-  console.error('Source file main.js not found. Build it first.');
-  process.exit(1);
+  console.warn('Source file main.js not found yet. The watcher will wait for it to be created by the build step.');
 }
 
 // Ensure target directory exists
@@ -111,16 +148,21 @@ const copy = () => {
   copyDirIfExists(srcReloader, destReloader);
 }
 
-// initial copy
+// initial copy (attempt)
 copy();
 
+// Log which target we are using (and whether .env provided it)
+console.log(`[hot-reload] Target directory: ${target} ${projectEnv.OBSIDIAN_PLUGIN_DIR ? '(from .env)' : ''}`);
+
+// watch for both addition and change events so we handle the case where the file is created after start
 const watcher = chokidar.watch(src, { persistent: true });
-watcher.on('change', (pathChanged) => {
-  try {
-    copy();
-  } catch (e) {
-    console.error('Copy failed', e);
-  }
+watcher.on('add', (p) => {
+  console.log(`[hot-reload] Detected new file: ${p}`);
+  try { copy(); } catch (e) { console.error('Copy failed', e); }
+});
+watcher.on('change', (p) => {
+  console.log(`[hot-reload] Detected change: ${p}`);
+  try { copy(); } catch (e) { console.error('Copy failed', e); }
 });
 
 console.log(`[hot-reload] Watching ${src} -> ${target}`);

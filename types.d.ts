@@ -9,6 +9,7 @@ export interface Marker {
 interface ChronosDataItem extends DataItem {
 	cDescription?: string; // prefixed c for chronos - special prop for event tooltips
 	cLink?: string; // optional link
+	isGeological?: boolean; // is geological time
 	align?: "left" | "center" | "right";
 }
 
@@ -17,6 +18,7 @@ export interface ChronosDataSetDataItem {
 	start: Date;
 	end: Date;
 	cDescription?: string; // prefixed c for chronos - special prop for event tooltips
+	isGeological?: boolean;
 }
 
 export interface ChronosPluginSettings {
@@ -59,6 +61,7 @@ interface ConstructItemParams {
 	lineNumber: number;
 	type: "default" | "background" | "point";
 	cLink?: string;
+	isGeological?: boolean;
 }
 
 interface ChronosTimelineConstructor {

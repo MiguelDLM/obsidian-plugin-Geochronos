@@ -162,6 +162,8 @@ export class ChronosMdParser {
 				return parseGeologicalDate(dateStr);
 			};
 
+			const isGeological = isGeologicalDate(start) || (end && isGeologicalDate(end));
+
 			return {
 				start: processDate(start, now),
 				separator,
@@ -171,6 +173,7 @@ export class ChronosMdParser {
 				content,
 				description,
 				cLink: link,
+				isGeological,
 			};
 		}
 	}
@@ -186,6 +189,7 @@ export class ChronosMdParser {
 		lineNumber,
 		type = "default",
 		cLink,
+		isGeological,
 	}: ConstructItemParams) {
 		const startISO = toPaddedISOZ(start);
 		const endISO = end ? toPaddedISOZ(end) : undefined;
@@ -228,6 +232,7 @@ export class ChronosMdParser {
 			style: style.length ? style : undefined,
 			className: classes,
 			cLink,
+			isGeological,
 			...(type === "default" ? {} : { type }),
 		};
 	}
@@ -246,6 +251,7 @@ export class ChronosMdParser {
 				content,
 				description,
 				cLink,
+				isGeological,
 			} = components;
 
 			this.items.push({
@@ -259,6 +265,7 @@ export class ChronosMdParser {
 					lineNumber,
 					type: "default",
 					cLink,
+					isGeological: !!isGeological,
 				}),
 				cDescription: description || undefined,
 				cLink,
@@ -278,6 +285,7 @@ export class ChronosMdParser {
 				groupName,
 				content,
 				description,
+				isGeological,
 			} = components;
 			this.items.push(
 				this._constructItem({
@@ -291,6 +299,7 @@ export class ChronosMdParser {
 					color,
 					lineNumber,
 					type: "background",
+					isGeological: !!isGeological,
 				}),
 			);
 		}
@@ -308,6 +317,7 @@ export class ChronosMdParser {
 				content,
 				description,
 				cLink,
+				isGeological,
 			} = components;
 			this.items.push({
 				...this._constructItem({
@@ -320,6 +330,7 @@ export class ChronosMdParser {
 					lineNumber,
 					type: "point",
 					cLink,
+					isGeological: !!isGeological,
 				}),
 				cDescription: description || undefined,
 				cLink,

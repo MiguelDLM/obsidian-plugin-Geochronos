@@ -46,13 +46,15 @@ export function maToISO(ma: number): string {
 	const wholeYearsAgo = Math.floor(scaled);
 	const fractional = scaled - wholeYearsAgo;
 
-	const year = -wholeYearsAgo;
-	const monthsFloat = fractional * 12;
-	const monthIndex = Math.floor(monthsFloat);
-	const month = clamp(monthIndex + 1, 1, 12);
+	// Use negative zero when the integer part is zero but there is a fractional component.
+	// This ensures the resulting ISO string starts with '-' so isoToMa can detect geological time.
+	const year = wholeYearsAgo === 0 && fractional > 0 ? -0 : -wholeYearsAgo;
 
-	const daysFloat = (monthsFloat - monthIndex) * 28;
-	const day = clamp(Math.floor(daysFloat) + 1, 1, 28);
+	const f_inv = 1 - fractional;
+	const total_days = f_inv * (12 * 28 - 1);
+	const month_index_from_days = Math.floor(total_days / 28);
+	const month = clamp(month_index_from_days + 1, 1, 12);
+	const day = clamp(Math.floor(total_days % 28) + 1, 1, 28);
 
 	const yearStr = formatYear(year);
 	const monthStr = String(month).padStart(2, "0");
@@ -72,18 +74,22 @@ export function isoToMa(isoStr: string): number {
 		throw new Error(`Invalid ISO date format: ${isoStr}`);
 	}
 
-	const year = parseInt(match[1], 10);
+	const yearStr = match[1];
 	const month = parseInt(match[2], 10);
 	const day = parseInt(match[3], 10);
 
-	if (year >= 0) {
+	// If the ISO string does not start with '-' it's a modern date -> 0 Ma
+	if (!isoStr.startsWith("-")) {
 		return 0;
 	}
 
+	const year = parseInt(yearStr, 10);
+
 	const wholeYearsAgo = -year;
 	const monthFraction = (clamp(month, 1, 12) - 1) / 12;
-	const dayFraction = (clamp(day, 1, 28) - 1) / (12 * 28);
-	const scaled = wholeYearsAgo + monthFraction + dayFraction;
+	const dayFraction = (clamp(day, 1, 28) - 1) / 28 / 12; // day fraction of a month, then month fraction of a year
+	const progress = monthFraction + dayFraction;
+	const scaled = wholeYearsAgo + (1 - progress);
 
 	return scaled / VIRTUAL_YEARS_PER_MA;
 }
@@ -166,7 +172,9 @@ export function formatMaRange(startMa: number, endMa: number): string {
 function formatYear(year: number): string {
 	const absYearStr = Math.abs(year).toString();
 	const paddedAbsYear = absYearStr.padStart(Math.max(6, absYearStr.length), "0");
-	return year < 0 ? `-${paddedAbsYear}` : absYearStr.padStart(4, "0");
+	// Treat negative zero as negative so ISO will start with '-'
+	const isNegZero = Object.is(year, -0);
+	return year < 0 || isNegZero ? `-${paddedAbsYear}` : absYearStr.padStart(4, "0");
 }
 
 function clamp(value: number, min: number, max: number): number {
