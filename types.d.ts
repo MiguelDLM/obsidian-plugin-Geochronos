@@ -29,7 +29,7 @@ export interface ChronosPluginSettings {
 	useAI: boolean;
 }
 
-export type Group = { id: number; content: string };
+export type Group = { id: number; content: string; className?: string };
 
 export type Flags = {
 	orderBy?: string[];
@@ -39,7 +39,7 @@ export type Flags = {
 	};
 	noToday?: boolean;
 	height?: number;
-	geologyOverlays?: ("Age" | "Epoch" | "Period" | "Era" | "Eon")[];
+	geologyOverlays?: ("Stage" | "Age" | "Epoch" | "Period" | "Era" | "Eon" | "Supereon")[];
 };
 
 export interface ParseResult {

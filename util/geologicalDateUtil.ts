@@ -2,16 +2,15 @@
  * Utilities for handling geological time dates
  * Geological dates are represented in Ma (millions of years ago)
  * 
- * Strategy: Convert Ma to a normalized year representation for vis-timeline
- * Ma of 0 = year 2000 (present)
- * Ma of 4600 = year -4599998000 (beginning of Earth)
+ * Strategy: Convert Ma to a normalized negative date representation for vis-timeline
+ * Ma of 0 = year 0 (present)
+ * Fractional Ma are encoded into virtual month/day fields for extra precision
  * 
  * This allows us to use vis-timeline's existing date handling while
  * representing geological time scales
  */
 
-const PRESENT_YEAR = 2000; // Reference year for "present" (0 Ma)
-const VIRTUAL_YEARS_PER_MA = 20; // Compress Ma to keep within JS Date limits
+const VIRTUAL_YEARS_PER_MA = 48; // Compress Ma to keep within JS Date limits while keeping years negative
 
 /**
  * Check if a string is in geological date format
@@ -43,20 +42,23 @@ export function parseMa(dateStr: string): number {
  * @returns ISO date string
  */
 export function maToISO(ma: number): string {
-	// Convert Ma to virtual integer years before present so generated dates remain valid
-	const yearsAgo = Math.round(ma * VIRTUAL_YEARS_PER_MA);
+	const scaled = ma * VIRTUAL_YEARS_PER_MA;
+	const wholeYearsAgo = Math.floor(scaled);
+	const fractional = scaled - wholeYearsAgo;
 
-	// Calculate the "virtual" year (negative for geological time)
-	const year = PRESENT_YEAR - yearsAgo;
+	const year = -wholeYearsAgo;
+	const monthsFloat = fractional * 12;
+	const monthIndex = Math.floor(monthsFloat);
+	const month = clamp(monthIndex + 1, 1, 12);
 
-	// Format as ISO date; negative years must be zero-padded to at least 6 digits
-	const absYearStr = Math.abs(year).toString();
-	const paddedAbsYear = absYearStr.padStart(Math.max(6, absYearStr.length), "0");
-	const yearStr = year < 0
-		? `-${paddedAbsYear}`
-		: year.toString().padStart(Math.max(4, year.toString().length), "0");
+	const daysFloat = (monthsFloat - monthIndex) * 28;
+	const day = clamp(Math.floor(daysFloat) + 1, 1, 28);
 
-	return `${yearStr}-01-01T00:00:00Z`;
+	const yearStr = formatYear(year);
+	const monthStr = String(month).padStart(2, "0");
+	const dayStr = String(day).padStart(2, "0");
+
+	return `${yearStr}-${monthStr}-${dayStr}T00:00:00Z`;
 }
 
 /**
@@ -65,14 +67,25 @@ export function maToISO(ma: number): string {
  * @returns Ma value
  */
 export function isoToMa(isoStr: string): number {
-	const match = isoStr.match(/^(-?\d+)-/);
+	const match = isoStr.match(/^(-?\d+)-(\d{2})-(\d{2})/);
 	if (!match) {
 		throw new Error(`Invalid ISO date format: ${isoStr}`);
 	}
-	
-	const year = parseInt(match[1]);
-		const yearsAgo = PRESENT_YEAR - year;
-		return yearsAgo / VIRTUAL_YEARS_PER_MA;
+
+	const year = parseInt(match[1], 10);
+	const month = parseInt(match[2], 10);
+	const day = parseInt(match[3], 10);
+
+	if (year >= 0) {
+		return 0;
+	}
+
+	const wholeYearsAgo = -year;
+	const monthFraction = (clamp(month, 1, 12) - 1) / 12;
+	const dayFraction = (clamp(day, 1, 28) - 1) / (12 * 28);
+	const scaled = wholeYearsAgo + monthFraction + dayFraction;
+
+	return scaled / VIRTUAL_YEARS_PER_MA;
 }
 
 /**
@@ -148,4 +161,14 @@ export function formatMaRange(startMa: number, endMa: number): string {
 		return formatMaDisplay(startMa);
 	}
 	return `${formatMaDisplay(startMa)} - ${formatMaDisplay(endMa)}`;
+}
+
+function formatYear(year: number): string {
+	const absYearStr = Math.abs(year).toString();
+	const paddedAbsYear = absYearStr.padStart(Math.max(6, absYearStr.length), "0");
+	return year < 0 ? `-${paddedAbsYear}` : absYearStr.padStart(4, "0");
+}
+
+function clamp(value: number, min: number, max: number): number {
+	return Math.min(Math.max(value, min), max);
 }

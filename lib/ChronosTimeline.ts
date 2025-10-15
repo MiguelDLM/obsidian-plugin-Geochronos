@@ -70,21 +70,31 @@ export class ChronosTimeline {
 			}
 
 			let workingItems = items;
+			let workingGroups = groups;
 			if (flags?.geologyOverlays?.length) {
-				const overlayItems = this._createGeologicalOverlayItems(
-					flags.geologyOverlays,
-				);
+				const { overlayItems, overlayGroups } =
+					this._buildGeologicalOverlayLanes(
+						flags.geologyOverlays,
+						groups,
+					);
 				if (overlayItems.length) {
-					workingItems = [...overlayItems, ...items];
+					workingItems = [...items, ...overlayItems];
+				}
+				if (overlayGroups.length) {
+					workingGroups = [...groups, ...overlayGroups];
 				}
 			}
 
-			const timeline = this._createTimeline(workingItems, groups, options);
+			const timeline = this._createTimeline(
+				workingItems,
+				workingGroups,
+				options,
+			);
 			this._addMarkers(timeline, markers);
 			this._setupTooltip(timeline, items);
 			this._createRefitButton(timeline);
 			// for whatever reason, timelines with groups render wonky on first paint and can be remedied by zooming in an out...
-			this._handleZoomWorkaround(timeline, groups);
+			this._handleZoomWorkaround(timeline, workingGroups);
 
 			this.timeline = timeline;
 
@@ -270,66 +280,124 @@ export class ChronosTimeline {
 
 	private assignItemsToGroups(items: ChronosDataItem[], groups: Group[]) {
 		const DEFAULT_GROUP_ID = 0;
-		let updatedItems = [...items];
-		const updatedGroups = groups.length
-			? [...groups, { id: DEFAULT_GROUP_ID, content: " " }]
-			: groups;
+		if (!groups.length) {
+			return { updatedItems: items, updatedGroups: groups };
+		}
 
-		updatedItems = items.map((item) => {
-			if (groups.length && !item.group) item.group = DEFAULT_GROUP_ID;
+		const updatedGroups = [
+			{ id: DEFAULT_GROUP_ID, content: " " },
+			...groups,
+		];
+
+		const updatedItems = items.map((item) => {
+			if (!item.group) item.group = DEFAULT_GROUP_ID;
 			return item;
 		});
 
 		return { updatedItems, updatedGroups };
 	}
 
-	private _createGeologicalOverlayItems(
+	private _buildGeologicalOverlayLanes(
 		ranks: GeologicalPeriod["rank"][],
-	): ChronosDataItem[] {
-		const overlays: ChronosDataItem[] = [];
+		existingGroups: Group[],
+	): { overlayItems: ChronosDataItem[]; overlayGroups: Group[] } {
+		const uniqueRanks = Array.from(new Set(ranks));
+		const overlayItems: ChronosDataItem[] = [];
+		const overlayGroups: Group[] = [];
 		const seen = new Set<string>();
+		let nextGroupId = existingGroups.length
+			? Math.max(...existingGroups.map((g) => g.id)) + 1
+			: 1;
 
-		ranks.forEach((rank) => {
+		uniqueRanks.forEach((rank) => {
 			const periods = getPeriodsByRank(rank);
-			periods.forEach((period) => {
-				const slug = period.name
-					.toLowerCase()
-					.replace(/[^a-z0-9]+/g, "-")
-					.replace(/(^-|-$)/g, "");
-				const overlayId = `overlay-${rank.toLowerCase()}-${slug}`;
+			if (!periods.length) return;
 
+			const groupId = nextGroupId++;
+			overlayGroups.push({
+				id: groupId,
+				content: this._labelForGeologicalRank(rank),
+				className: "geology-lane-group",
+			});
+
+			periods.forEach((period) => {
+				const overlayId = this._slugify(
+					`overlay-${rank}-${period.name}`,
+				);
 				if (seen.has(overlayId)) {
 					return;
 				}
-
 				seen.add(overlayId);
 
-				overlays.push({
+				overlayItems.push({
 					id: overlayId,
 					content: period.name,
 					start: toUTCDate(maToISO(period.start)),
 					end: toUTCDate(maToISO(period.end)),
+					group: groupId,
 					type: "background",
-					className: `geology-overlay geology-overlay-${rank.toLowerCase()}`,
+					className: `geology-lane geology-lane-${rank.toLowerCase()}`,
 					style: this._buildOverlayStyle(period),
 				});
 			});
 		});
 
-		return overlays;
+		overlayItems.sort(
+			(a, b) =>
+				(a.start as Date).valueOf() - (b.start as Date).valueOf(),
+		);
+
+		return { overlayItems, overlayGroups };
 	}
 
 	private _buildOverlayStyle(period: GeologicalPeriod): string | undefined {
-		const styles: string[] = ["border: none"];
+		const styles: string[] = [
+			"border: none",
+			"align-items: center",
+			"display: flex",
+			"pointer-events: none",
+			"font-weight: 600",
+			"text-transform: uppercase",
+			"letter-spacing: 0.02em",
+			"justify-content: center",
+			"width: 100%",
+		];
 		if (period.color) {
-			const rgba = this._hexToRgba(period.color, 0.18);
+			const rgba = this._hexToRgba(period.color, 0.25);
 			if (rgba) {
 				styles.push(`background-color: ${rgba}`);
 			}
 		}
 		styles.push("color: var(--text-normal)");
-		styles.push("font-weight: 600");
 		return styles.join("; ");
+	}
+
+	private _labelForGeologicalRank(rank: GeologicalPeriod["rank"]): string {
+		switch (rank) {
+			case "Stage":
+				return "Stages";
+			case "Age":
+				return "Ages";
+			case "Epoch":
+				return "Epochs";
+			case "Period":
+				return "Periods";
+			case "Era":
+				return "Eras";
+			case "Eon":
+				return "Eons";
+			case "Supereon":
+				return "Supereons";
+			default:
+				return rank;
+		}
+	}
+
+	private _slugify(value: string): string {
+		return value
+			.toLowerCase()
+			.replace(/[^a-z0-9]+/g, "-")
+			.replace(/(^-|-$)/g, "");
 	}
 
 	private _hexToRgba(hex: string, alpha: number): string | null {
@@ -358,9 +426,7 @@ export class ChronosTimeline {
 	}
 
 	private _createDataGroups(rawGroups: Group[]) {
-		return new DataSet<Group>(
-			rawGroups.map((g) => ({ id: g.id, content: g.content })),
-		);
+		return new DataSet<Group>(rawGroups.map((g) => ({ ...g })));
 	}
 
 	private _handleZoomWorkaround(timeline: Timeline, groups: Group[]) {

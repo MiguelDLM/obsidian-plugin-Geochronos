@@ -18,6 +18,25 @@ import {
 	parseGeologicalDate 
 } from "../util/geologicalDateUtil";
 
+type GeologyOverlayRank = NonNullable<Flags["geologyOverlays"]>[number];
+
+const GEOLOGY_FLAG_MAP: Record<string, GeologyOverlayRank> = {
+	ages: "Stage",
+	age: "Stage",
+	stages: "Stage",
+	stage: "Stage",
+	epochs: "Epoch",
+	epoch: "Epoch",
+	periods: "Period",
+	period: "Period",
+	eras: "Era",
+	era: "Era",
+	eons: "Eon",
+	eon: "Eon",
+	supereons: "Supereon",
+	supereon: "Supereon",
+};
+
 export class ChronosMdParser {
 	private errors: string[] = [];
 	private items: ChronosDataItem[] = [];
@@ -333,6 +352,12 @@ export class ChronosMdParser {
 		const flagName = match[1]?.toLocaleLowerCase();
 		const flagContent = match[2]?.split("|") || [];
 
+		const overlayRank = flagName ? GEOLOGY_FLAG_MAP[flagName] : undefined;
+		if (overlayRank) {
+			this._addGeologyOverlay(overlayRank);
+			return;
+		}
+
 		const registerOverlay = (rank: "Age" | "Epoch" | "Period" | "Era" | "Eon") => {
 			if (!this.flags.geologyOverlays) {
 				this.flags.geologyOverlays = [];
@@ -434,6 +459,16 @@ export class ChronosMdParser {
 		}
 	}
 
+		private _addGeologyOverlay(rank: GeologyOverlayRank) {
+			if (!this.flags.geologyOverlays) {
+				this.flags.geologyOverlays = [];
+			}
+
+			if (!this.flags.geologyOverlays.includes(rank)) {
+				this.flags.geologyOverlays.push(rank);
+			}
+		}
+
 	private _getOrCreateGroupId(groupName: string): number {
 		if (this.groupMap[groupName] !== undefined) {
 			return this.groupMap[groupName];
@@ -452,7 +487,7 @@ export class ChronosMdParser {
 	}
 
 	private _mapToObsidianColor(color: Color, opacity: Opacity) {
-		const colorMap = {
+		const colorMap: Partial<Record<Color, string>> = {
 			red: "red",
 			green: "green",
 			blue: "blue",
@@ -461,16 +496,24 @@ export class ChronosMdParser {
 			purple: "purple",
 			pink: "pink",
 			cyan: "cyan",
+			magenta: "magenta",
+			lime: "lime",
+			teal: "teal",
+			brown: "brown",
+			black: "black",
+			gray: "gray",
+			white: "white",
 		};
 
-		if (!colorMap[color]) {
+		const mappedColor = colorMap[color];
+		if (!mappedColor) {
 			console.warn(`Color "${color}" not recognized.`);
 			return undefined;
 		}
 
 		return opacity === "solid"
-			? `var(--color-${colorMap[color]})`
-			: `rgba(var(--color-${colorMap[color]}-rgb), var(--chronos-opacity))`;
+			? `var(--color-${mappedColor})`
+			: `rgba(var(--color-${mappedColor}-rgb), var(--chronos-opacity))`;
 	}
 
 	private _ensureChronologicalDates(

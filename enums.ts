@@ -7,6 +7,13 @@ export enum Color {
   Purple = "purple",
   Pink = "pink",
   Cyan = "cyan",
+  Magenta = "magenta",
+  Lime = "lime",
+  Teal = "teal",
+  Brown = "brown",
+  Black = "black",
+  Gray = "gray",
+  White = "white"
 }
 
 export enum Opacity {

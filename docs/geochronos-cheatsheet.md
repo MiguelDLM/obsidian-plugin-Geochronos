@@ -228,13 +228,22 @@ Use the `> DEFAULTVIEW start|end` flag to specify default start and end dates fo
 
 ## Geological overlays
 
-Enable prebuilt geological backgrounds with timeline flags. `> AGES` fills the track with International Commission on Stratigraphy (ICS) age intervals, using their official colors and bounds.
+Light up auxiliary geological lanes by adding overlay flags. Each flag draws an extra track under your events using International Commission on Stratigraphy (ICS) bounds and color palette:
+
+- `> AGES` / `> STAGES`
+- `> EPOCHS`
+- `> PERIODS`
+- `> ERAS`
+- `> EONS`
+
+You can combine multiple flags and they will stack in the order given.
 
 ```geochronos
 > AGES
+> PERIODS
 
-* [0.0117Ma] End of the Pleistocene
-@ [65Ma~66Ma] Chicxulub impact | boundary between the Cretaceous and Paleogene periods
+* [0.0117Ma] Fin del Pleistoceno
+- [0.066Ma~0.056Ma] Últimos dinosaurios no aviares
 ```
 
 ## Advanced example

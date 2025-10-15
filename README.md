@@ -420,16 +420,25 @@ If needed, you can vertically scroll your timleline by clicking and dragging up 
 - [2025-02-02~2025-03-28] foo 9
 ```
 
-### AGES flag
+### Geological overlay flags
 
-Populate the timeline with International Commission on Stratigraphy (ICS) age bands, using their official boundaries and color palette. This is handy when you want a ready-made geological backdrop for fossil records, evolution notes, or sediment cores.
+Add extra lanes beneath your events to display official ICS intervals. Each flag adds one band, styled with the commission’s palette and boundaries:
+
+- `> AGES` (alias `> STAGES`)
+- `> EPOCHS`
+- `> PERIODS`
+- `> ERAS`
+- `> EONS`
+
+Use more than one flag to stack multiple reference lanes.
 
 ````markdown
 ```geochronos
 > AGES
+> PERIODS
 
-* [0.0042Ma] Meghalayan start
-- [0.066Ma~0.056Ma] Late Cretaceous | still dominated by dinosaurs
+- [0.07Ma] Human expansion fuera de África
+- [0.02Ma] Domesticación del perro
 ```
 ````
 ````

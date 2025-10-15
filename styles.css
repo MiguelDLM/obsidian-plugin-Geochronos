@@ -66,22 +66,46 @@
 	background-color: var(--color-base-70) !important;
 }
 
-.chronos-timeline-container .vis-item.vis-background:not(.geology-overlay) {
+.chronos-timeline-container .vis-item.vis-background {
 	background-color: hsla(var(--color-accent-hsl), 0.2);
 	color: var(--text-on-primary);
 }
-
-.chronos-timeline-container .vis-item.geology-overlay {
+.chronos-timeline-container .vis-item.geology-lane {
 	border: none !important;
-	color: var(--text-normal) !important;
-	font-weight: 600;
-	text-transform: uppercase;
-	letter-spacing: 0.02em;
+	color: var(--text-muted) !important;
+	box-shadow: none !important;
+	pointer-events: none !important;
+	padding: 0 !important;
 }
 
-.chronos-timeline-container .vis-item.geology-overlay .vis-item-content {
-	padding: 0.15rem 0.45rem;
-	opacity: 0.95;
+.chronos-timeline-container .vis-item.geology-lane .vis-item-content {
+	width: 100%;
+	justify-content: center;
+	align-items: center;
+	display: flex;
+	padding: 0.15rem 0.35rem;
+	font-size: 0.75rem;
+	font-weight: 600;
+	text-transform: uppercase;
+	letter-spacing: 0.05em;
+}
+
+.chronos-timeline-container .vis-item.geology-lane.vis-selected,
+.chronos-timeline-container .vis-item.geology-lane.vis-selected .vis-item-content {
+	background-color: inherit !important;
+	color: inherit !important;
+}
+
+.chronos-timeline-container .vis-group.geology-lane-group .vis-label {
+	background-color: transparent !important;
+	border-bottom: none !important;
+	font-size: 0.75rem;
+	text-transform: uppercase;
+	color: var(--text-muted);
+}
+
+.chronos-timeline-container .vis-group.geology-lane-group .vis-label .vis-inner {
+	padding-left: 0 !important;
 }
 
 .chronos-timeline-container .vis-item.vis-selected {

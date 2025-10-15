@@ -342,4 +342,11 @@ Use the \`> DEFAULTVIEW start|end\` flag to specify default start and end dates 
 - \`#purple\`
 - \`#pink\`
 - \`#cyan\`
+- \`#magenta\`
+- \`#lime\`
+- \`#teal\`
+- \`#brown\`
+- \`#black\`
+- \`#gray\`
+- \`#white\`
 `;

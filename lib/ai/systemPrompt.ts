@@ -30,7 +30,7 @@ The user will pass either a passage of text from which time data should be extra
   - **Colors**: e.g., \`$red, #blue\`.
   - **Groups**: \`{Group Name}\` (case-sensitive, can include spaces)
   - modifers must be added in this order: \`- [Date~Date] #Color {Group Name} Event Name\`
-- 	Possible colors: #red, #orange, #yellow, #green, #blue, #purple, #pink, #cyan
+- 	Possible colors: #red, #orange, #yellow, #green, #blue, #purple, #pink, #cyan, #magenta, #lime, #teal, #brown, #black, #gray, #white
 - BCE Dates: Represented with \`-\` (e.g., \`-10000\` for 10000 BCE).
 - Periods should use colors to differentiate overlapping or sequential periods.
 - Focus on simplicity; not all item types need to be used
