@@ -242,8 +242,8 @@ You can combine multiple flags and they will stack in the order given.
 > AGES
 > PERIODS
 
-* [0.0117Ma] Fin del Pleistoceno
-- [0.066Ma~0.056Ma] Últimos dinosaurios no aviares
+* [0.0117Ma] End of the Pleistocene
+- [0.066Ma~0.056Ma] Last non-avian dinosaurs
 ```
 
 ## Advanced example

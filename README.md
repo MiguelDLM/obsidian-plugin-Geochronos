@@ -1,6 +1,6 @@
 # Geochronos: Geological Timelines for Obsidian
 
-**Fork of [Chronos Timeline](https://github.com/clairefro/obsidian-plugin-chronos) adapted for geological time scales**
+**A fork of [Chronos Timeline](https://github.com/clairefro/obsidian-plugin-chronos) adapted for geological time scales.**
 
 Render interactive geological timelines in your Obsidian notes using millions of years (Ma) instead of modern dates. Perfect for geologists, paleontologists, educators, and anyone working with deep time.
 
@@ -8,784 +8,234 @@ Powered by the [vis-timeline](https://www.npmjs.com/package/vis-timeline) librar
 
 ![demo](./docs/ex-main-demo.gif)
 
-## 🌍 New in Geochronos
+## What is Geochronos?
 
-- **Geological date format**: Use `252Ma`, `66.0Ma`, `4600Ma` instead of calendar dates
-- **Automatic scaling**: Timeline displays in Ma, Ka (thousands), or Ga (billions) based on scale
-- **ICS data included**: Based on the International Chronostratigraphic Chart (2024)
-- **Geological templates**: Pre-built examples for Mesozoic, Precambrian, and more
-- **Full backwards compatibility**: Still works with modern dates from original Chronos
+Geochronos is a fork of the Chronos Timeline plugin, specifically adapted to create **geological timelines**. While the original Chronos is designed for modern, calendar-based events (days, months, years), Geochronos allows you to work with the vast scales of geological time using **millions of years (Ma)** as the primary unit.
 
-📖 **[Complete Geochronos Documentation →](./GEOCHRONOS.md)**
+It maintains full compatibility with the original Chronos syntax for modern dates, but it shines when visualizing the deep history of our planet.
+
+## Key Features
+
+- **Geological Date Format**: Use `Ma` (millions of years) as the standard date format (e.g., `66Ma`, `252.1Ma`).
+- **Automatic Scaling**: The timeline axis intelligently displays labels in **Ga** (billions), **Ma** (millions), or **Ka** (thousands) of years, depending on the zoom level.
+- **Built-in ICS Data**: Includes geological period data based on the official **International Chronostratigraphic Chart (2024)**.
+- **Geological Flags**: Add official geological eons, eras, periods, epochs, and ages as background lanes for context using simple flags like `> PERIODS`.
+- **Full Backwards Compatibility**: Still works perfectly with modern `YYYY-MM-DD` dates from the original Chronos plugin.
+
+## Installation
+
+1.  Download `main.js`, `manifest.json`, and `styles.css` from the latest release.
+2.  Create a new folder in your Obsidian vault's plugins directory named `geochronos`. The path will be `<YourVault>/.obsidian/plugins/geochronos/`.
+3.  Copy the three downloaded files into this new folder.
+4.  Open Obsidian and go to **Settings** → **Community plugins**.
+5.  If "Safe mode" is on, you will need to disable it.
+6.  Click the "Reload plugins" button.
+7.  Find "Geochronos - Geological Timelines" in the list and enable it.
+
+To verify the installation, open the command palette (`Ctrl/Cmd + P`) and search for "Geochronos". You should see commands to insert example timelines.
 
 ## Quickstart
 
-### Geological Timeline
-
-Create geological timelines using `Ma` (millions of years ago):
+Create a `geochronos` code block in any note and add your events. This example visualizes the Mesozoic Era.
 
 ````markdown
 ```geochronos
-# Mesozoic Era - Age of Dinosaurs
+# Mesozoic Era - "Age of Reptiles"
 
-@ [251.902Ma~66Ma] Mesozoic Era
-@ [251.902Ma~201.3Ma] #purple Triassic Period
-@ [201.3Ma~145Ma] #blue Jurassic Period  
-@ [145Ma~66Ma] #green Cretaceous Period
+@ [251.9Ma~66Ma] #cyan Mesozoic Era
 
-- [252Ma] #red Permian-Triassic extinction
-- [201Ma] #red Triassic-Jurassic extinction
+@ [251.9Ma~201.3Ma] #purple Triassic Period
+- [252Ma] #red Permian-Triassic Extinction
+
+@ [201.3Ma~145Ma] #blue Jurassic Period
 - [150Ma] Archaeopteryx appears
-- [66Ma] #red K-Pg extinction | Dinosaurs extinct
+
+@ [145Ma~66Ma] #green Cretaceous Period
+- [66Ma] #red K-Pg Extinction | Dinosaurs go extinct
 ```
 ````
 
-### Modern Timeline (Original Chronos format)
+## Syntax Guide
 
-The plugin still supports modern calendar dates:
+Geochronos parses special syntax inside a `geochronos` code block. The first character of each line determines the item type.
 
-````markdown
+### Geological Date Format (`Ma`)
+
+The primary date format for Geochronos is **Ma** (millions of years before present).
+
+-   `252Ma` - 252 million years ago
+-   `66.0Ma` - 66.0 million years ago
+-   `0.0117Ma` - 11,700 years ago (the format will automatically switch to Ka)
+
+For date ranges, use a tilde `~`. The start and end dates must be in chronological order (older value first).
+-   `[251.9Ma~66Ma]` - A range spanning from 251.9 to 66 million years ago.
+
+### Item Types
+
+-   **Events (`-`)**: A point or range in time.
+    -   `-[Date] Event Name`
+    -   `-[Date~Date] Event Name`
+-   **Periods (`@`)**: A background span, useful for showing eras or phases.
+    -   `@[Date~Date] Period Name`
+-   **Points (`*`)**: A point in time, displayed as a dot on the timeline.
+    -   `*[Date] Point Name`
+-   **Markers (`=`)**: A vertical line marking a specific time.
+    -   `=[Date] Marker Name`
+-   **Comments (`#`)**: Lines starting with `#` are ignored.
+
+### Modifiers
+
+Add modifiers to Events, Periods, and Points to change their appearance. They must be placed between the date and the name.
+
+-   **Colors (`#color`)**: Use predefined colors (`#red`, `#blue`, etc.) or hex codes (`#FF5733`).
+    -   `-[66Ma] #red K-Pg Extinction`
+-   **Groups (`{Group Name}`)**: Group items into "swimlanes".
+    -   `-[150Ma] {Jurassic} Archaeopteryx`
+
+**Order**: Color must come before the group if both are used.
+`-[Date] #color {Group} Name`
+
+### Flags (`>`)
+
+Flags are special commands on their own line that modify the entire timeline.
+
+-   `> NOTODAY`: Hides the vertical bar that marks the current day.
+-   `> HEIGHT <px>`: Sets a fixed height for the timeline in pixels (e.g., `> HEIGHT 300`).
+-   `> ORDERBY <field>`: Orders overlapping items. (e.g., `> ORDERBY start`).
+-   `> DEFAULTVIEW <start>|<end>`: Sets the initial visible range. (e.g., `> DEFAULTVIEW 252Ma|66Ma`).
+
+### Geological Flags
+
+These are the most powerful feature of Geochronos. Add official geological time scales as background lanes to your timeline for context. You can stack multiple flags.
+
+-   `> EONS`
+-   `> ERAS`
+-   `> PERIODS`
+-   `> EPOCHS`
+-   `> AGES` (or `> STAGES`)
+
+## Examples Gallery
+
+### 1. Phanerozoic Eon with Mass Extinctions
+
+A high-level overview of the last ~540 million years, highlighting the "Big Five" mass extinctions.
+
 ```geochronos
-- [1789~1799] French Revolution
-- [1791~1804] Haitian Revolution
-- [1776] American Declaration of Independence
+# Phanerozoic Eon - "Visible Life"
+
+@ [538.8Ma~251.902Ma] #green {Paleozoic} Paleozoic Era
+@ [251.902Ma~66Ma] #cyan {Mesozoic} Mesozoic Era
+@ [66Ma~0.0209Ma] #yellow {Cenozoic} Cenozoic Era
+
+# Mass Extinctions
+- [443.8Ma] #red {Paleozoic} Ordovician-Silurian Extinction
+- [372.2Ma] #red {Paleozoic} Late Devonian Extinction
+- [252Ma] #red {Paleozoic} Permian-Triassic Extinction | The Great Dying
+- [201.3Ma] #red {Mesozoic} Triassic-Jurassic Extinction
+- [66Ma] #red {Mesozoic} K-Pg Extinction | End of the dinosaurs
 ```
-````
 
-![quickstart example](./docs/ex-comment.png)
+### 2. Comprehensive Cenozoic Era with Geological Flags
 
-## Command Palette Templates
+This example showcases the power of the geological flags. It plots key events in the Cenozoic Era against the official Period, Epoch, and Age subdivisions from the International Chronostratigraphic Chart.
 
-Use the Command Palette (`ctrl/cmd` + `p`) to insert templates:
-
-- **Insert geological timeline example (Mesozoic)** - NEW! 🦕
-- **Insert geological timeline example (Precambrian)** - NEW! 🌍
-- Insert timeline (blank)
-- Insert basic template
-
-![palette example basic](./docs/ex-palette-basic.gif)
-
-### Insert advanced template
-
-![palette example advanced](./docs/ex-palette-adv.gif)
-
-### Generate timeline with AI
-
-Highlight text in your notes and run the "Generate" command.
-
-Input can be long text in your notes with time information, or vague like:
-
-- "Detailed history of the Cold War"
-- "Compare the life and works of Borges and C.S. Lewis"
-- "Year and location of the past 20 Olympic games. Do not group. Do use points not events"
-
-![genai example](./docs/ex-genai.gif)
-
-![genai example 2](./docs/ex-points-2.png)
-
-### Cheatsheet
-
-After installing the Geochronos plugin, paste the contents of [this cheatsheet](./docs/geochronos-cheatsheet.md) into a file in your vault to play with examples. If you still have older notes that use the `chronos` fence, they continue to render thanks to the built-in alias.
-
-## Contents
-
-- [Geochronos: geological timelines for Obsidian](#geochronos-geological-timelines-for-obsidian)
-    - [Features](#features)
-    - [Quickstart](#quickstart)
-        - [Insert blank](#insert-blank)
-        - [Insert basic template](#insert-basic-template)
-        - [Insert advanced template](#insert-advanced-template)
-        - [Generate timeline with AI](#generate-timeline-with-ai)
-        - [Cheatsheet](#cheatsheet)
-    - [Contents](#contents)
-- [Syntax Overview](#syntax-overview)
-    - [A note on dates](#a-note-on-dates)
-        - [Date ranges](#date-ranges)
-        - [BCE time](#bce-time)
-        - [Limitations](#limitations)
-    - [Events `-`](#events--)
-        - [Events with a single date](#events-with-a-single-date)
-        - [Events with start and end dates](#events-with-start-and-end-dates)
-        - [Events with descriptions](#events-with-descriptions)
-    - [Periods `@`](#periods-)
-    - [Points `*`](#points-)
-    - [Markers `=`](#markers-)
-    - [Comments `#`](#comments-)
-    - [Flags `>`](#flags-)
-        - [ORDERBY flag](#orderby-flag)
-        - [DEFAULTVIEW flag](#defaultview-flag)
-            - [Example](#example)
-    - [Modifiers](#modifiers)
-        - [Colors `#color`](#colors-color)
-        - [Groups `{}`](#groups-)
-    - [Advanced example](#advanced-example)
-- [Note linking (beta)](#note-linking-beta)
-- [Dynamic Timelines](#dynamic-timelines)
-    - [Prerequisites](#prerequisites)
-    - [Basic Example](#basic-example)
-    - [Advanced Usage](#advanced-usage)
-    - [Combining Dynamic and Static Events](#combining-dynamic-and-static-events)
-    - [Tips](#tips)
-- [Actions](#actions)
-    - [Edit](#edit)
-    - [Refit](#refit)
-- [Localization](#localization)
-
-# Syntax Overview
-
-Geochronos parses Markdown in `geochronos` code blocks into objects on a timeline. For backwards compatibility, legacy `chronos` fences are still recognized.
-
-````markdown
 ```geochronos
-<geochronos timeline items here>
-```
-````
-
-The first character of each line in your `geochronos` block determines the item type:
-
-- [Events](#events--) (`-`)
-- [Periods](#periods-) (`@`)
-- [Points](#points-) (`*`)
-- [Markers](#markers-) (`=`)
-- [Comments](#comments-) (`#`)
-- [Flags](#flags-) (`>`)
-
-Certain items can be modified with colors and group membership (see [Modifiers](#modifiers))
-
-## A note on dates
-
-Geochronos can visualize dates from the year down to the second level, using the syntax `YYYY-MM-DDThh:mm:ss`.
-
-The only required component of a date is the year (`YYYY`). Beyond that, you can specify additional time granularity as needed for your use case.
-
-If not explicitly provided:
-
-- The month and day default to `01` (January and the 1st)
-- The hour, minute, and second default to `00` (top of the hour or minute)
-
-**Hours** use 24-hr military time. So 3am is `03`, while 3pm is `15`
-
-**Examples**
-
-```
-- [2020] A year
-- [2020-02] A month
-- [2020-02-28] A day
-- [2020-02-28T12] An hour
-- [2020-02-28T12:30] A minute
-- [2020-02-28T12:30:09] A second
-```
-
-![date example](./docs/ex-dates-optimize.gif)
-
-### Date ranges
-
-Date ranges are separated by a tilde `~`, **NOT a hyphen**! Look out :)
-
-The start and end date must be in chronological order.
-
-```
-- [2020~2024]
-- [2024-02-28~2024-05-11]
-- [2024-02-28T05:30~2024-02-28T08:30]
-```
-
-### BCE time
-
-You can signify BCE times with the negative symbol (-)
-
-```
-- [-10000]    <--- 10000 BCE
-- [-550~-20]  <--- 550 ~ 20 BCE
-- [-550~550]  <--- 550 BCE ~ 550 CE
-```
-
-### Limitations
-
-- Dates **must be between year 271,821 BCE and 275,761 CE**, due to how Dates work in JS
-
-## Events `-`
-
-Events can include a single date or a date range.
-
-### Events with a single date
-
-**Syntax**
-
-```
-- [Date] Event Name
-```
-
-Only `[Date]` is required. If no `Event Name` is provided, the event title will default to the date or date range.
-
-**Example**
-
-````markdown
-```geochronos
-- [1879-03-14] Einstein born
-```
-````
-
-![single date event example](./docs/ex-event-single.png)
-
-### Events with start and end dates
-
-A date range is represented with a tilde (`~`) between the start and end dates.
-
-**Syntax**
-
-```
-- [Date~Date] Event Name
-```
-
-**Example**
-
-````markdown
-```geochronos
-- [1991~2001] Time I believed in Santa
-```
-````
-
-![event with range example](./docs/ex-event-range.png)
-
-### Events with descriptions
-
-You can add additional information to an event by adding a pipe `|` after the Event name. This text will appear in a popup when you hover over an event.
-
-**Example**
-
-````markdown
-```geochronos
-- [1991~2001] Time I believed in Santa | ended when my brother tried to videotape Santa with a hidden camera
-```
-````
-
-![event with range example](./docs/ex-event-range-desc.png)
-
-## Periods `@`
-
-Periods are spans of time displayed with a semi-transparent background. **Periods must be a range with a start and end date**. `Period Name` is optional
-
-```
-@ [Date~Date] Period Name
-```
-
-**Example**
-
-````markdown
-```geochronos
-@ [-300~250] #red Yayoi Period
-- [-100] Introduction of rice cultivation
-- [-57] Japan’s first recorded contact with China
-
-@ [250~538] Kofun Period
-- [250] Construction of keyhole-shaped kofun burial mounds begins
-- [369] Yamato state sends envoys to Korea
-```
-````
-
-![period example](./docs/ex-period.png)
-
-## Points `*`
-
-Points are ideal for marking a point in time. You can optionally add a `Description` that will appear on hover.
-
-```
-* [Date] Point Name | Description
-```
-
-````markdown
-```geochronos
-- [2024-02-26~2024-03-10] Tournament
-* [2024-02-26] Game 1 | Austin
-* [2024-02-28] Game 2 | Los Angeles
-* [2024-03-06] Game 3 | Tokyo
-* [2024-03-10] Game 4 | Jakarta
-```
-````
-
-![point example](./docs/ex-point.png)
-
-## Markers `=`
-
-Markers can be used to highlight a key milestone in time. **Markers must be a single date**. `Marker Name` is optional
-
-```
-= [Date] Marker Name
-```
-
-**Example**
-
-````markdown
-```geochronos
-= [1440] Invention of the Gutenberg Press
-
-- [1455] Gutenberg Bible Printed
-@ [1501~1600] The Spread of Printing
-- [1517] Martin Luther's 95 Theses
-```
-````
-
-![marker example](./docs/ex-marker.png)
-
-## Comments `#`
-
-Geochronos will ignore any line that starts with `#`. You can use this to write comments to yourself or block out items.
-
-**Example**
-
-````markdown
-```geochronos
-# this line is a comment, it will be ignored by geochronos
-
-- [1789~1799] French Revolution
-- [1791~1804] Haitian Revolution
-- [1776] American Declaration of Independence
-
-# the event below will not render, since it has been commented out
-# - [1939~1945] World War II
-```
-````
-
-![comment example](./docs/ex-comment.png)
-
-## Flags `>`
-
-You can add flags to your timeline by using the `>` symbol. Flags are parsed on separate lines, and are case insenstive. You can use multiple flags.
-
-Example: The timeline below uses the `NOTODAY` and `ORDERBY` flags, to hide the current time marker and to order the stack of overlapping items by start date.
-
-````markdown
-```geochronos
-> NOTODAY
-> ORDERBY start
-
-- [2022~2024] foo
-- [2020~2024] bar
-```
-````
-
-### NOTODAY flag
-
-Hide the vertical bar that marks today's time
-
-```
-> NOTODAY
-```
-
-(without flag)
-
-````markdown
-```geochronos
-- [2025-02-02~2025-03-28] foo
-```
-````
-
-![notday without flag example](./docs/ex-notoday-without-flag.png)
-
-(with flag)
-
-````markdown
-```geochronos
-> NOTODAY
-- [2025-02-02~2025-03-28] foo
-```
-````
-
-![notday with flag example](./docs/ex-notoday-with-flag.png)
-
-
-### HEIGHT flag
-
-Set a fixed height for a given timeline (in pixels).
-
-If needed, you can vertically scroll your timleline by clicking and dragging up or down
-
-```
-> HEIGHT <number of pixels>
-```
-
-````markdown
-```geochronos
-> HEIGHT 300
-
-- [2025-02-02~2025-03-28] foo 1
-- [2025-02-02~2025-03-28] foo 2
-- [2025-02-02~2025-03-28] foo 3
-- [2025-02-02~2025-03-28] foo 4
-- [2025-02-02~2025-03-28] foo 5
-- [2025-02-02~2025-03-28] foo 6
-- [2025-02-02~2025-03-28] foo 7
-- [2025-02-02~2025-03-28] foo 8
-- [2025-02-02~2025-03-28] foo 9
-```
-
-### Geological overlay flags
-
-Add extra lanes beneath your events to display official ICS intervals. Each flag adds one band, styled with the commission’s palette and boundaries:
-
-- `> AGES` (alias `> STAGES`)
-- `> EPOCHS`
-- `> PERIODS`
-- `> ERAS`
-- `> EONS`
-
-Use more than one flag to stack multiple reference lanes.
-
-````markdown
-```geochronos
+# Cenozoic Era - "Age of Mammals"
+> PERIODS
+> EPOCHS
 > AGES
+
+@ [66Ma~0.0209Ma] #yellow Cenozoic Era
+
+- [65Ma] {Paleogene} Diversification of mammals
+- [56Ma] {Paleogene} PETM | Paleocene-Eocene Thermal Maximum
+- [50Ma] {Paleogene} India collides with Asia, forming the Himalayas
+- [34Ma] {Paleogene} Grande Coupure | Major extinction event
+- [23Ma] {Neogene} Grasslands and kelp forests expand
+- [5.3Ma] {Neogene} Messinian Salinity Crisis
+- [2.6Ma] {Quaternary} Beginning of Pleistocene ice ages
+- [0.3Ma] {Quaternary} Homo sapiens appears
+- [0.07Ma] {Quaternary} "Out of Africa" migration
+```
+
+### 3. History of Earth's Supercontinents
+
+Visualize the assembly and breakup of Earth's supercontinents over billions of years.
+
+```geochronos
+# Supercontinents and Continental Drift
+> EONS
+
+- [3600Ma] Vaalbara | First hypothetical supercontinent
+- [2700Ma] Kenorland
+- [2100Ma~1800Ma] #blue {Columbia} Columbia/Nuna Supercontinent
+- [1300Ma~900Ma] #green {Rodinia} Rodinia Supercontinent
+- [600Ma~540Ma] #purple {Pannotia} Pannotia Supercontinent
+- [335Ma~175Ma] #red {Pangea} Pangea Supercontinent
+- [175Ma] Pangea begins to fragment
+- [50Ma] India collides with Asia | Formation of the Himalayas
+```
+
+## Differences from Original Chronos
+
+| Feature | Chronos | Geochronos |
+|---------------|-------------------|--------------------------|
+| **Date Format** | `YYYY-MM-DD` | `Ma` (millions of years) |
+| **Primary Use** | Modern History | Geological Time |
+| **Time Axis** | Years/months/days | Ga/Ma/Ka |
+| **Min Scale** | Second | ~21,000 years (Ka) |
+| **Max Scale** | ~9,500 years | 4,600 million years |
+| **Special Flags** | None | `EONS`, `ERAS`, `PERIODS`... |
+
+## Dynamic Timelines (with Dataview)
+
+You can use the [Dataview](https://blacksmithgu.github.io/obsidian-dataview/) plugin to create dynamic timelines that automatically update from your notes. This requires enabling JavaScript queries in Dataview's settings.
+
+The following example creates a timeline from notes in a "Dinosaurs" folder, using frontmatter fields `born_in_ma` and `died_in_ma`.
+
+````markdown
+```dataviewjs
+const pages = dv.pages('"Dinosaurs"').where(p => p.born_in_ma);
+
+let events = pages.map(p => {
+    const name = p.file.name;
+    const start = p.born_in_ma + "Ma";
+    const end = p.died_in_ma ? "~" + p.died_in_ma + "Ma" : "";
+    return `- [${start}${end}] {${p.period}} ${name}`;
+}).join("\n");
+
+const geochronosBlock = ````markdown
+```geochronos
 > PERIODS
 
-- [0.07Ma] Human expansion fuera de África
-- [0.02Ma] Domesticación del perro
-```
-````
-````
-
-![height example](./docs/ex-height.gif)
-
-### ORDERBY flag
-
-By default, Geochronos ordering is set by the stacking of the elements in the timeline.
-
-The `ORDERBY` flag can be used to specify an ordering
-
-> [!WARNING]  
-> Ordering can make the timeline laggy when there are many items. Use with precaution
-
-```
-> ORDERBY start|-content
-```
-
-- You can use any of these fields: `start` | `end` | `content` | `color` | `description`.
-    - _Start date_ | _end date_ | _item label content_ | _color_ | _item description_
-- You can stack them by joining them with a pipe `|` to add another sorting level.
-- You can prepend a dash `-` to any of the fields to order in descending order on this field.
-
-#### Example
-
-**Order by start date**
-
-````markdown
-```geochronos
-> ORDERBY start
-
-- [2026~2028] Event D
-- [2024~2028] Event B
-- [2025~2030] #red Event C
-- [2020~2030] #red  Event A
-```
-````
-
-![order by start date](./docs/ex-order-by-start.png)
-
-**Order by color and start**
-
-````markdown
-```geochronos
-> ORDERBY color|start
-
-- [2026~2028] Event D
-- [2024~2028] Event B
-- [2025~2030] #red Event C
-- [2020~2030] #red  Event A
-```
-````
-
-![order by color and start date](./docs/ex-order-by-color-start.png)
-
-
-### DEFAULTVIEW flag
-
-Use the `> DEFAULTVIEW start|end` flag to specify default start and end dates for your timeline's initial load. You can use YYYY-MM-DD timestamps for the start and end date, with the minimum requirement being YYYY.
-
-```geochronos
-> DEFAULTVIEW  -3000|3000
-
-- [2024] AGI
-```
-
-![default view example](./docs/ex-default-view.png)
-
-## Modifiers
-
-Modifiers **#color** and **{Group}** can be added to **Events** (`-`) and **Periods** (`@`) with the following optional syntax.
-
-```
-- [Date-Date] #color {Group Name} Name | Description
-```
-
-The modifiers must go in this order: between `Dates` and `Name`, with color first if both color and group are used.
-
-### Colors `#color`
-
-By default, Geochronos matches your Obsidian theme color.
-
-To give items a specific color, you can include an available color after the date: `#red` | `#orange` | `#yellow` | `#green` | `#blue` | `purple` | `#pink` | `#cyan`
-
-**Example**
-
-````markdown
-```geochronos
-- [2001~2009] #red Bush
-- [2009~2017] #blue Obama
-- [2017~2021] #red Trump
-- [2021~2025] #blue Biden
-
-@ [2020-03-11~2023-05-11] #pink COVID19
-```
-````
-
-![color example](./docs/ex-color.png)
-
-### Groups `{}`
-
-**Events** and **Periods** can be grouped into "swimlanes" by specifying a `Group Name` in curly brackets `{}` after the `Date` (or `Color`, if present). Group names are case sensitive and may contain spaces.
-
-The order of items does not matter, but the example below lumps items together by group for human legibility.
-
-**Example**
-
-````markdown
-```geochronos
-@ [1892-10-08~1941-08-31]{Marina Tsvetaeva} 1892-1941
-- [1916] {Marina Tsvetaeva} "Подруга"
-- [1928] {Marina Tsvetaeva}  "Поэма концов"
-- [1941] {Marina Tsvetaeva} "Записки о поэзии"
-
-@[1899-08-24~1986-06-14]{Jorge Luis Borges} 1899-1986
-- [1944] {Jorge Luis Borges} "Ficciones"
-- [1949] {Jorge Luis Borges} "El Aleph"
-- [1962] {Jorge Luis Borges} "Labyrinths"
-```
-````
-
-![groups example](./docs/ex-groups.png)
-
-## Advanced example
-
-This example combines **Events**, **Periods**, **Markers**, **Comments**, **Descriptions**, **Groups** and **Colors**
-
-````markdown
-```geochronos
-- [1945-07-17] {Europe} Potsdam Conference | where post-WWII Europe is divided
-- [1947-03-12] {USA} Truman Doctrine | committing the U.S. to containing communism
-- [1948-06-24~1949-05-12] {Europe} Berlin Blockade | and Airlift in response to Soviet actions in Berlin
-- [1949-04-04] {Europe} Formation of NATO
-
-# Early Cold War
-
-@ [1957~1969] #cyan {USSR} Space Race
-@ [1957~1969] #cyan {USA} Space Race
-- [1950-06-25~1953-07-27] {Asia} Korean War | between North and South Korea
-- [1955-05-14] {USSR} Warsaw Pact | in response to NATO
-- [1957-10-04] #cyan {USSR} Sputnik launched | initiating the Space Race
-- [1961-04-17] {Cuba} Bay of Pigs Invasion | in Cuba
-
-# Height of Tensions
-
-- [1962-10-16] {Cuba} Cuban Missile Crisis | a peak confrontation between the U.S. and USSR
-- [1963-08-05] {Global} Partial Nuclear Test Ban Treaty signed
-- [1969-07-20] #cyan {USA} Apollo 11 Moon landing | U.S. wins the Space Race
-- [1972-05-26] {Global} SALT I signed | first Strategic Arms Limitation Treaty
-
-# Détente Period
-
-- [1979-12-24~1989-02-15] {USSR} Soviet-Afghan War | straining Soviet resources
-- [1983-03-23] {USA} Reagan announces the Strategic Defense Initiative (SDI)
-- [1986-04-26] {USSR} Chernobyl nuclear disaster
-- [1987-12-08] {Global} INF Treaty | signed, eliminating intermediate-range nuclear missiles
-
-# Late Cold War
-
-- [1989-11-09] {Europe} Fall of the Berlin Wall | symbolizing the end of Cold War tensions
-- [1991-07-31] {Global} START I Treaty signed | further arms reduction
-- [1991-12-26] {USSR} Dissolution of the Soviet Union | officially ending the Cold War
-
-= [1991-12-26] End of the Cold War
-
-```
-````
-
-![advanced example](./docs/ex-advanced.png)
-
-# Note linking (beta)
-
-Link to other notes in your vault by adding a wiki link to either the item name or description. Type `[[` then a few characters in your note title for Obsidan to auto-suggest a path to insert. Geochronos will link to the **first link** provided in an item.
-
-Works for Event and Point type items. You can add a link to the item name (link path visible), or the description (link path hidden). Items with a link will appear underlined.
-
-**Left-click**: open link in **current** tab
-**Middle-click or Shift + click**: open link in **new** tab
-
-![example: note linking](./docs/ex-note-linking.gif)
-
-Examples:
-
-````markdown
-```geochronos
-- [2021~2022] No link
-- [2023~2024] With link [[path/to/note]]
-- [2022~2024] Link in description | [[path/to/note]]
-* [2022] Link in description | [[path/to/note]]
-```
-````
-
-![example: note linking 2](./docs/ex-note-linking-2.png)
-
-You can link directly to a section heading in a note by adding `#section name` to the path
-
-````markdown
-```geochronos
-- [2021~2022] My long note | [[path/to/note#section]]
-```
-````
-
-> Note: Moving or renaming a note SOMETIMES updates links in your Geochronos timeline blocks, if the path is used for the link (not an alias, ex: just `note` instead of `path/to/note`). I'm working on updating alias links safely
-
-## Previewing links
-
-While hovering a timeline item with a link, press Control or Command to show a preview of the linked note
-
-![example: link preview](./docs/ex-link-preview.png)
-
-# Dynamic Timelines
-
-Turn your Obsidian notes into living, breathing timelines that **update automatically** as you work. By combining Geochronos with [Dataview](https://blacksmithgu.github.io/obsidian-dataview/), you can create timelines that dynamically reflect your notes, tasks, or any other data in your vault.
-
-## Prerequisites
-
-- [Dataview](https://blacksmithgu.github.io/obsidian-dataview/) plugin installed
-- JavaScript queries enabled in Dataview settings
-
-You can put your dataview code inside of `dataviewjs` code fences:
-
-````markdown
-```dataviewjs
-
-```
-````
-
-## Basic Example
-
-Create a timeline of birthdays from notes in the directory `Contacts` and also link the notes:
-
-````markdown
-```dataviewjs
-const pages = dv.pages('"Contacts"').where((p) => p.birthday); // skip all without birthday
-
-let events = pages
-	.map((p) => {
-		const date = new Date(p["birthday"]).toISOString().split(".")[0];
-		const title = p.file.name;
-		return `- [${date}] ${title} | [[${title}]]`;
-	})
-	.join("\n");
-
-const geochronosBlock = `\`\`\`geochronos\n${events}\n\`\`\``;
-dv.paragraph(geochronosBlock);
-```
-````
-
-## Advanced Usage
-
-Create a timeline of all contacts' birthdays, with family members highlighted in blue:
-
-````markdown
-```dataviewjs
-// Query all contacts with birthdays
-const contacts = dv.pages('"Contacts"').where((p) => p.birthday);
-
-// Generate events with family members in blue
-let events = contacts
-	.map((p) => {
-		const date = new Date(p.birthday).toISOString().split("T")[0];
-		const isFamily = p.tags?.includes("family");
-		const color = isFamily ? "#blue" : "";
-		return `- [${date}] ${color} ${p.file.name} | [[${p.file.path}]]`;
-	})
-	.join("\n");
-
-// Add some styling
-const geochronosBlock = `\`\`\`geochronos
-> ORDERBY start
-
-# Birthday Timeline
+# Dinosaur Timeline
 ${events}
-\`\`\``;
+```
+````;
 
 dv.paragraph(geochronosBlock);
 ```
 ````
 
-## Combining Dynamic and Static Events
+## Known Limitations
 
-You can mix dynamically generated events with static timeline entries.
-Here's an example that combines dynamic birthdays with fixed holidays and periods:
+- **Timeline Range**: To avoid technical issues with the underlying visualization library, the timeline is strictly locked to a range between **4600 Ma** and **20,900 years ago (0.0209 Ma)**. It is not possible to view dates more recent than this limit.
+- **Zoom Precision**: The maximum zoom level is limited to a range of approximately 0.01 million years. This is to prevent a situation where zooming further does not provide additional detail due to the fixed two-decimal precision of the `Ma` labels.
 
-````markdown
-```dataviewjs
-// Query all contacts with birthdays
-const contacts = dv.pages('"Contacts"').where((p) => p.birthday);
+These limitations are necessary because `vis-timeline`, the library that powers Geochronos, is fundamentally designed for calendar dates, not for a purely numeric, scientific scale. The current implementation is a workaround to adapt it for geological use.
 
-// Generate birthday events
-let birthdayEvents = contacts
-	.map((p) => {
-		const date = new Date(p.birthday).toISOString().split("T")[0];
-		const isFamily = p.tags?.includes("family");
-		const color = isFamily ? "#blue" : "";
-		return `- [${date}] ${color} ${p.file.name} | [[${p.file.path}]]`;
-	})
-	.join("\n");
+## Development and Contributing
 
-// Combine with static events
-const geochronosBlock = `\`\`\`geochronos
-> ORDERBY start
+This is an educational/scientific fork of the Chronos plugin. To contribute to the original project, please visit [github.com/clairefro/obsidian-plugin-chronos](https://github.com/clairefro/obsidian-plugin-chronos).
 
-# Important Dates
-@ [2024-12-20~2025-01-05] #pink Holiday Season
-= [2024-12-25] Christmas Day
-= [2025-01-01] New Year's Day
-
-# Birthdays
-${birthdayEvents}
-\`\`\``;
-
-dv.paragraph(geochronosBlock);
+To compile the plugin:
+```bash
+npm install
+npm run build
 ```
-````
 
-## Tips
+## Credits
 
-- Use frontmatter dates for consistent formatting (also for ranges)
-- Style events with dynamic colors and groups using any Dataview query logic
-- Mix with static events and periods
-- Leverage Dataview's full query capabilities to generate timeline events
-
-The **timeline updates automatically** whenever your source notes change!
-
-# Actions
-
-## Edit
-
-To enter **Edit** mode and update your `geochronos` Markdown, hover over the timeline and click the code icon that appears in the upper-right corner.
-
-![edit example](./docs/ex-edit.png)
-![edit example - markdown mode](./docs/ex-edit-2.png)
-
-## Refit
-
-Click the **Refit** button (crosshairs icon) in the lower-right corner to adjust all items to fit within the view window.
-
-![refit example](./docs/ex-refit.png)
-
-# Localization
-
-You can choose your preferred language for dates from the Geochronos plugin settings.
-
-Available options depend on your system's language settings.
-
-![localization example - settings menu](./docs/ex-localization-1.png)
-
-![localization example - tooltip](./docs/ex-localization-2.png)
+- **Original Plugin**: [Chronos Timeline](https://github.com/clairefro/obsidian-plugin-chronos) by Claire Froelich
+- **Geological Data**: [International Chronostratigraphic Chart](https://stratigraphy.org) (ICS)
+- **Visualization Library**: [vis-timeline](https://visjs.github.io/vis-timeline/docs/timeline/)
